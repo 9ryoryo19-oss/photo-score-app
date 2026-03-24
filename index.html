@@ -776,7 +776,7 @@
   <div class="modal-content">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">✕</button>
-    <img class="modal-img" id="modal-img" src="" alt="">
+    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background='var(--bg3)'">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent)" id="modal-score"></div>
       <div>
@@ -1027,9 +1027,9 @@ async function handleFileChange(e) {
         displayScoreResult(scores);
       } catch(err) {
         showToast('採点中にエラーが発生しました');
+      } finally {
+        document.getElementById('scoring-loading').style.display = 'none';
       }
-
-      document.getElementById('scoring-loading').style.display = 'none';
     };
   };
   reader.readAsDataURL(file);
@@ -1135,7 +1135,7 @@ async function savePhoto() {
     removePreview();
     await loadHomeStats();
     loadGallery();
-    switchPage('gallery', document.querySelectorAll('.nav-item')[2]);
+    switchPage('gallery', document.querySelector('.nav-item:nth-child(3)'));
 
   } catch (err) {
     showToast('保存に失敗しました: ' + err.message);
@@ -1298,7 +1298,9 @@ async function loadGallery() {
   `).join('');
 }
 
-function openDetail(p) {
+function openDetail(id) {
+  const p = window._galleryData[id];
+  if (!p) return;
   document.getElementById('modal-img').src = p.image_url;
   document.getElementById('modal-score').textContent = p.score + '点';
   const grade = getGrade(p.score);
@@ -1337,9 +1339,15 @@ function switchPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   if (name === 'gallery') loadGallery();
   if (name === 'home') loadHomeStats();
+  if (name === 'upload' && !pendingImageData) {
+    document.getElementById('upload-area').style.display = 'block';
+    document.getElementById('preview-container').style.display = 'none';
+    document.getElementById('score-result').style.display = 'none';
+    document.getElementById('scoring-loading').style.display = 'none';
+  }
 }
 
 function formatDate(iso) {
