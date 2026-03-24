@@ -845,7 +845,14 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const CLOUDINARY_CLOUD = 'duu4fajsb';
 const CLOUDINARY_UPLOAD_PRESET = 'photo_score_app';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage
+  }
+});
 
 let currentUser = null;
 let pendingImageData = null;
@@ -865,7 +872,10 @@ function toggleAuth() {
   document.getElementById('auth-error').style.display = 'none';
 }
 
-document.getElementById('auth-btn').addEventListener('click', async () => {
+function setupAuthBtn() {
+  const btn = document.getElementById('auth-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
   const email = document.getElementById('input-email').value.trim();
   const password = document.getElementById('input-password').value;
   const errEl = document.getElementById('auth-error');
@@ -902,7 +912,12 @@ document.getElementById('auth-btn').addEventListener('click', async () => {
     errEl.style.display = 'block';
   }
 
-  document.getElementById('auth-btn').textContent = isSignUp ? '登録する' : 'ログイン';
+  btn.textContent = isSignUp ? '登録する' : 'ログイン';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupAuthBtn();
 });
 
 supabase.auth.onAuthStateChange((event, session) => {
