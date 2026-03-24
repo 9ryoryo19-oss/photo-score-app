@@ -619,6 +619,34 @@
       margin-bottom: 20px;
       color: var(--text);
     }
+
+    .sort-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .sort-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .sort-tab.active {
+      background: var(--accent);
+      color: #0a0a0f;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -745,6 +773,10 @@
   <!-- GALLERY PAGE -->
   <div class="page" id="page-gallery">
     <div class="page-header">ギャラリー</div>
+    <div class="sort-tabs">
+      <div class="sort-tab active" id="tab-latest" onclick="switchSort('latest')">🕐 最新順</div>
+      <div class="sort-tab" id="tab-score" onclick="switchSort('score')">🏆 高得点順</div>
+    </div>
     <div class="loading" id="gallery-loading">
       <div class="spinner"></div>
       <div>読み込み中...</div>
@@ -1269,16 +1301,26 @@ function updateChart(data) {
 }
 
 // ===== GALLERY =====
+let currentSort = 'latest';
+
+function switchSort(sort) {
+  currentSort = sort;
+  document.getElementById('tab-latest').classList.toggle('active', sort === 'latest');
+  document.getElementById('tab-score').classList.toggle('active', sort === 'score');
+  loadGallery();
+}
+
 async function loadGallery() {
   document.getElementById('gallery-loading').style.display = 'block';
   document.getElementById('gallery-grid').innerHTML = '';
   document.getElementById('gallery-empty').style.display = 'none';
 
+  const orderColumn = currentSort === 'score' ? 'score' : 'created_at';
   const { data, error } = await supabase
     .from('photos')
     .select('*')
     .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
+    .order(orderColumn, { ascending: false });
 
   document.getElementById('gallery-loading').style.display = 'none';
 
