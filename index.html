@@ -299,11 +299,23 @@
       position: relative;
     }
 
-    .upload-area:active { border-color: var(--accent); background: var(--bg3); }
-    .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .upload-icon { font-size: 3rem; margin-bottom: 12px; }
-    .upload-text { font-size: 1rem; color: var(--text2); }
-    .upload-hint { font-size: 0.8rem; color: var(--text2); margin-top: 6px; opacity: 0.6; }
+    .upload-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .upload-btn-card {
+      background: var(--bg3);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-btn-card:active { border-color: var(--accent); background: var(--bg2); }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .upload-text { font-size: 0.9rem; color: var(--text2); font-weight: 500; }
 
     .preview-container {
       position: relative;
@@ -686,11 +698,19 @@
   <div class="page" id="page-upload">
     <div class="page-header">写真を採点する</div>
 
-    <div class="upload-area" id="upload-area">
-      <input type="file" id="file-input" accept="image/*" capture="environment">
-      <div class="upload-icon">📷</div>
-      <div class="upload-text">タップして写真を選ぶ</div>
-      <div class="upload-hint">カメラロールから選択またはカメラで撮影</div>
+    <div id="upload-area">
+      <div class="upload-btn-row">
+        <div class="upload-btn-card" onclick="document.getElementById('file-input-library').click()">
+          <input type="file" id="file-input-library" accept="image/*" style="display:none">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-text">写真ライブラリ</div>
+        </div>
+        <div class="upload-btn-card" onclick="document.getElementById('file-input-camera').click()">
+          <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">カメラで撮影</div>
+        </div>
+      </div>
     </div>
 
     <div class="preview-container" id="preview-container">
@@ -983,7 +1003,7 @@ async function analyzeAndScore(imageEl) {
 }
 
 // ===== FILE INPUT =====
-document.getElementById('file-input').addEventListener('change', async (e) => {
+async function handleFileChange(e) {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -1013,7 +1033,10 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
     };
   };
   reader.readAsDataURL(file);
-});
+}
+
+document.getElementById('file-input-library').addEventListener('change', handleFileChange);
+document.getElementById('file-input-camera').addEventListener('change', handleFileChange);
 
 function removePreview() {
   pendingImageData = null;
@@ -1021,7 +1044,8 @@ function removePreview() {
   document.getElementById('preview-container').style.display = 'none';
   document.getElementById('upload-area').style.display = 'block';
   document.getElementById('score-result').style.display = 'none';
-  document.getElementById('file-input').value = '';
+  document.getElementById('file-input-library').value = '';
+  document.getElementById('file-input-camera').value = '';
 }
 
 function displayScoreResult(scores) {
