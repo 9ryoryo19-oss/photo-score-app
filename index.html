@@ -495,6 +495,18 @@
       margin-top: 2px;
     }
 
+    .delete-btn {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .delete-btn:active { opacity: 1; }
+
     /* Detail Modal */
     .modal {
       position: fixed;
@@ -1011,25 +1023,44 @@ async function analyzeAndScore(imageEl) {
       sharpness: Math.max(20, sharpnessScore),
     };
 
-    // アドバイス生成
+    // アドバイス生成（厳しく詳細に）
     const advices = [];
-    if (scores.brightness < 50) advices.push('露出を上げて明るく撮影してみましょう。');
-    else if (scores.brightness > 85) advices.push('少し露出を下げると締まりのある写真になります。');
-    else advices.push('明るさのバランスが良好です。');
 
-    if (scores.saturation < 40) advices.push('彩度が低め。晴れた日に撮影するか、編集で少し彩度を上げてみましょう。');
-    else if (scores.saturation > 75) advices.push('鮮やかな色合いが印象的です。');
+    // 明るさ
+    if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。暗い写真は後処理でも限界があります。');
+    else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。カメラのISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。風景では三脚を使った長秒露光も有効です。');
+    else if (scores.brightness > 88) advices.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。空の白飛びは後処理では回復不可能です。');
+    else if (scores.brightness > 75) advices.push('【明るさ：やや明るい】少し露出オーバーです。-0.3〜-0.7段絞ることで、空や雲のディテールを保持できます。');
+    else advices.push('【明るさ：良好】露出は適切です。次は光の方向性（順光・逆光・サイド光）を意識すると、さらに立体感のある写真になります。');
 
-    if (scores.contrast < 45) advices.push('コントラストを高めると立体感が増します。');
-    else if (scores.contrast > 75) advices.push('力強いコントラストが写真に深みを与えています。');
+    // 彩度
+    if (scores.saturation < 25) advices.push('【彩度：非常に低い】色味がほぼない状態です。モノクロ写真として仕上げるか、晴天の青空や夕焼けを背景に撮影しましょう。曇りの日は意図的にモノクロ変換が効果的です。');
+    else if (scores.saturation < 45) advices.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選ぶか、編集で彩度を+20〜30上げてみましょう。ただし不自然な過彩度は避けること。');
+    else if (scores.saturation > 80) advices.push('【彩度：鮮やか】色彩が豊かで視線を引きます。ただし彩度が高すぎると不自然に見えることも。プリントや画面環境によって見え方が変わるので確認を。');
+    else advices.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを被写体の色温度に合わせると、さらに自然な発色になります。');
 
-    if (scores.sharpness < 45) advices.push('手ブレや被写体ブレに注意。三脚や速いシャッタースピードを試してみましょう。');
+    // コントラスト
+    if (scores.contrast < 30) advices.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。RAW撮影してトーンカーブで暗部を下げ明部を上げるS字カーブをかけましょう。または偏光フィルターを使って反射を抑えると効果的です。');
+    else if (scores.contrast < 50) advices.push('【コントラスト：不足】明暗差が少なく、立体感に欠けます。被写体に対して横から光を当てるサイド光を意識し、影を活かした構図にしましょう。');
+    else if (scores.contrast > 80) advices.push('【コントラスト：強い】ダイナミックな仕上がりです。ただし暗部が潰れていないか確認を。HDR合成や段階露出で暗部を補うとバランスが取れます。');
+    else advices.push('【コントラスト：良好】明暗のバランスが取れています。被写体の質感を出すには、光の角度を変えてみることをおすすめします。');
 
-    if (scores.total >= 80) advices.push('素晴らしい一枚！この調子で撮り続けましょう🌟');
-    else if (scores.total >= 60) advices.push('良い写真です。継続することでさらに上達できます。');
-    else advices.push('構図・光・焦点の3つを意識して撮影してみましょう。');
+    // シャープネス
+    if (scores.sharpness < 30) advices.push('【シャープネス：深刻】明らかにブレています。三脚必須です。またシャッタースピードを被写体の動きに合わせて設定し（動体なら1/500秒以上）、セルフタイマーやリモコンでシャッターを切りましょう。');
+    else if (scores.sharpness < 50) advices.push('【シャープネス：不足】ピントが甘いか手ブレがあります。一眼カメラではAFポイントを主題に合わせ、iPhoneでは画面タップでピント合わせを確認してください。');
+    else if (scores.sharpness > 75) advices.push('【シャープネス：優秀】くっきりと解像しています。主題を際立たせるために、前景と背景のボケ（深度）も意識してみましょう。');
+    else advices.push('【シャープネス：良好】ピントは合っています。次は被写界深度（どこからどこまでピントを合わせるか）をコントロールすることを意識しましょう。');
 
-    scores.advice = advices.join(' ');
+    // 総合評価
+    if (scores.total >= 85) advices.push('【総合】プロレベルに近い仕上がりです。光・構図・色の三要素が高水準で揃っています。SNSや作品展示にも十分通用します。');
+    else if (scores.total >= 70) advices.push('【総合】上級アマチュアレベルです。あと一歩の完成度。弱点の項目に集中して改善すれば、大きくスコアが上がります。');
+    else if (scores.total >= 55) advices.push('【総合】中級者レベルです。基本は押さえられていますが、光の読み方と構図の意図が弱い。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
+    else if (scores.total >= 40) advices.push('【総合】初級者レベルです。今は量より質を意識して。1回の外出で100枚撮るより、10枚を丁寧に撮る練習をしてください。三分割法を意識した構図から始めましょう。');
+    else advices.push('【総合】基礎から見直しが必要です。まずは晴れた日の昼間に、明るく・ブレない写真を撮ることだけを目標にしてください。設定はフルオートでOKです。');
+
+    scores.advice = advices.join('
+
+');
     resolve(scores);
   });
 }
@@ -1038,6 +1069,9 @@ async function analyzeAndScore(imageEl) {
 async function handleFileChange(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  // 撮影日時を取得（ファイルの最終更新日時を使用）
+  window._pendingPhotoDate = file.lastModified ? new Date(file.lastModified).toISOString() : new Date().toISOString();
 
   const reader = new FileReader();
   reader.onload = async (ev) => {
@@ -1108,6 +1142,7 @@ function displayScoreResult(scores) {
     </div>
   `).join('');
 
+  document.getElementById('advice-text').style.whiteSpace = 'pre-line';
   document.getElementById('advice-text').textContent = scores.advice;
 }
 
@@ -1348,7 +1383,8 @@ function openDetail(id) {
   const grade = getGrade(p.score);
   document.getElementById('modal-grade').textContent = grade.label;
   document.getElementById('modal-grade').style.color = grade.color;
-  document.getElementById('modal-date').textContent = formatDate(p.created_at);
+  document.getElementById('modal-date').textContent = '📅 撮影日: ' + formatDate(p.photo_taken_at || p.created_at);
+  document.getElementById('modal-advice').style.whiteSpace = 'pre-line';
   document.getElementById('modal-advice').textContent = p.advice || '';
 
   const breakdown = [
@@ -1395,6 +1431,19 @@ function switchPage(name, el) {
 function formatDate(iso) {
   const d = new Date(iso);
   return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+
+async function deletePhoto(id) {
+  if (!confirm('この写真を削除しますか？')) return;
+  const { error } = await supabase.from('photos').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) {
+    showToast('削除に失敗しました');
+  } else {
+    showToast('🗑️ 削除しました');
+    delete window._galleryData[id];
+    await loadHomeStats();
+    loadGallery();
+  }
 }
 
 function showToast(msg) {
