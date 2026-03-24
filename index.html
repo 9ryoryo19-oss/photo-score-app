@@ -918,6 +918,10 @@ function setupAuthBtn() {
 
 document.addEventListener('DOMContentLoaded', () => {
   setupAuthBtn();
+  const lib = document.getElementById('file-input-library');
+  const cam = document.getElementById('file-input-camera');
+  if (lib) lib.addEventListener('change', handleFileChange);
+  if (cam) cam.addEventListener('change', handleFileChange);
 });
 
 supabase.auth.onAuthStateChange((event, session) => {
@@ -1116,8 +1120,7 @@ async function handleFileChange(e) {
   reader.readAsDataURL(file);
 }
 
-document.getElementById('file-input-library').addEventListener('change', handleFileChange);
-document.getElementById('file-input-camera').addEventListener('change', handleFileChange);
+// file input listeners are set up in DOMContentLoaded
 
 function removePreview() {
   pendingImageData = null;
