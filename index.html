@@ -686,7 +686,7 @@
       <input type="password" id="input-password" placeholder="パスワード（6文字以上）">
     </div>
 
-    <button class="btn-primary" id="auth-btn">ログイン</button>
+    <button class="btn-primary" id="auth-btn" onclick="doAuth()">ログイン</button>
 
     <div class="auth-switch" id="auth-switch">
       アカウントがない方は <span onclick="toggleAuth()">新規登録</span>
@@ -841,6 +841,55 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script>
+// ===== GLOBAL AUTH FUNCTION =====
+let isSignUp = false;
+async function doAuth() {
+  const btn = document.getElementById('auth-btn');
+  const email = document.getElementById('input-email').value.trim();
+  const password = document.getElementById('input-password').value;
+  const errEl = document.getElementById('auth-error');
+
+  errEl.style.display = 'none';
+  errEl.style.background = 'rgba(224,112,112,0.1)';
+  errEl.style.borderColor = '#e07070';
+  errEl.style.color = '#e07070';
+
+  if (!email || !password) {
+    errEl.textContent = 'メールアドレスとパスワードを入力してください';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '処理中...';
+  btn.disabled = true;
+
+  try {
+    let result;
+    if (isSignUp) {
+      result = await supabase.auth.signUp({ email, password });
+    } else {
+      result = await supabase.auth.signInWithPassword({ email, password });
+    }
+
+    if (result.error) {
+      errEl.textContent = 'エラー: ' + result.error.message;
+      errEl.style.display = 'block';
+    } else if (isSignUp && !result.data?.session) {
+      errEl.style.background = 'rgba(92,184,138,0.1)';
+      errEl.style.borderColor = '#5cb88a';
+      errEl.style.color = '#5cb88a';
+      errEl.textContent = '確認メールを送信しました！';
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = 'エラー: ' + e.message;
+    errEl.style.display = 'block';
+  }
+
+  btn.textContent = isSignUp ? '登録する' : 'ログイン';
+  btn.disabled = false;
+}
+
 // ===== CONFIG =====
 const SUPABASE_URL = 'https://mhoxmehluacprsmepmxu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
@@ -870,7 +919,6 @@ let currentUser = { id: 'local-user-001', email: 'user@photogrow.app' };
 let pendingImageData = null;
 let pendingScoreData = null;
 let scoreChart = null;
-let isSignUp = false;
 
 // ===== AUTH =====
 function toggleAuth() {
