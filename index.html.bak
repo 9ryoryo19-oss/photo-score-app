@@ -42,8 +42,6 @@
       justify-content: center;
       padding: 40px 24px;
       background: radial-gradient(ellipse at 50% 0%, #1a1530 0%, var(--bg) 70%);
-      position: relative;
-      z-index: 500;
     }
 
     .auth-logo {
@@ -146,7 +144,7 @@
     }
 
     /* ===== MAIN APP ===== */
-    #app { display: none; min-height: 100vh; padding-bottom: 80px; position: relative; z-index: 1; }
+    #app { display: none; min-height: 100vh; padding-bottom: 80px; }
 
     /* Header */
     .app-header {
@@ -861,8 +859,7 @@ try {
     }
   });
 } catch(e) {
-  console.error('Supabase init error:', e);
-  // supabaseがnullのままDOMContentLoadedで処理する
+  document.body.innerHTML = '<div style="color:white;padding:40px;font-family:sans-serif"><h2>⚠️ 読み込みエラー</h2><p>' + e.message + '</p><button onclick="location.reload()" style="background:#c8a96e;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:16px">再読み込み</button></div>';
 }
 
 let currentUser = null;
@@ -884,7 +881,16 @@ function toggleAuth() {
 }
 
 
-// onAuthStateChangeはDOMContentLoadedで設定
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    initApp();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
 
 async function handleLogout() {
   if (confirm('ログアウトしますか？')) {
@@ -1423,30 +1429,12 @@ function showToast(msg) {
 }
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  // 認証状態の監視
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('auth-screen').style.visibility = 'hidden';
-      document.getElementById('app').style.display = 'block';
-      initApp();
-    } else {
-      currentUser = null;
-      document.getElementById('auth-screen').style.display = 'flex';
-      document.getElementById('auth-screen').style.visibility = 'visible';
-      document.getElementById('app').style.display = 'none';
-    }
-  });
-
   // ログインボタン
   const btn = document.getElementById('auth-btn');
   if (btn) {
     btn.addEventListener('click', async () => {
       if (!supabase) {
-        const errEl = document.getElementById('auth-error');
-        errEl.textContent = 'ページを再読み込みしてください';
-        errEl.style.display = 'block';
+        alert('アプリの読み込みに失敗しました。ページを再読み込みしてください。');
         return;
       }
       const email = document.getElementById('input-email').value.trim();
