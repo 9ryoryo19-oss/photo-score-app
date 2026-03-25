@@ -845,14 +845,22 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const CLOUDINARY_CLOUD = 'duu4fajsb';
 const CLOUDINARY_UPLOAD_PRESET = 'photo_score_app';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-    storage: window.localStorage
-  }
-});
+// Supabaseクライアント初期化
+let supabase;
+try {
+  const supabaseLib = window.supabase || window.Supabase;
+  if (!supabaseLib) throw new Error('Supabase library not loaded');
+  supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      storage: window.localStorage
+    }
+  });
+} catch(e) {
+  document.body.innerHTML = '<div style="color:white;padding:40px;font-family:sans-serif"><h2>⚠️ 読み込みエラー</h2><p>' + e.message + '</p><button onclick="location.reload()" style="background:#c8a96e;border:none;padding:12px 24px;border-radius:8px;font-size:1rem;cursor:pointer;margin-top:16px">再読み込み</button></div>';
+}
 
 let currentUser = null;
 let pendingImageData = null;
@@ -1425,10 +1433,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('auth-btn');
   if (btn) {
     btn.addEventListener('click', async () => {
+      if (!supabase) {
+        alert('アプリの読み込みに失敗しました。ページを再読み込みしてください。');
+        return;
+      }
       const email = document.getElementById('input-email').value.trim();
       const password = document.getElementById('input-password').value;
       const errEl = document.getElementById('auth-error');
       errEl.style.display = 'none';
+      errEl.style.background = 'rgba(224,112,112,0.1)';
+      errEl.style.borderColor = 'var(--danger)';
+      errEl.style.color = 'var(--danger)';
 
       if (!email || !password) {
         errEl.textContent = 'メールアドレスとパスワードを入力してください';
@@ -1448,9 +1463,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (result.error) {
-          errEl.textContent = result.error.message.includes('Invalid') ? 'メールアドレスまたはパスワードが間違っています' : result.error.message;
+          errEl.textContent = result.error.message.includes('Invalid') || result.error.message.includes('credentials')
+            ? 'メールアドレスまたはパスワードが間違っています'
+            : result.error.message;
           errEl.style.display = 'block';
-        } else if (isSignUp && !result.data.session) {
+        } else if (isSignUp && !result.data?.session) {
           errEl.style.background = 'rgba(92,184,138,0.1)';
           errEl.style.borderColor = 'var(--success)';
           errEl.style.color = 'var(--success)';
@@ -1458,7 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
           errEl.style.display = 'block';
         }
       } catch (e) {
-        errEl.textContent = 'エラーが発生しました: ' + e.message;
+        errEl.textContent = 'エラー: ' + e.message;
         errEl.style.display = 'block';
       }
 
