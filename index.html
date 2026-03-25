@@ -665,7 +665,7 @@
 <body>
 
 <!-- AUTH SCREEN -->
-<div id="auth-screen">
+<div id="auth-screen" style="display:none">
   <div class="auth-logo">📸 PhotoGrow</div>
   <div class="auth-tagline">風景写真で成長する、あなたの記録</div>
 
@@ -695,7 +695,7 @@
 </div>
 
 <!-- MAIN APP -->
-<div id="app">
+<div id="app" style="display:block">
   <header class="app-header">
     <div class="app-header-logo">📸 PhotoGrow</div>
     <div class="user-avatar" id="user-avatar" onclick="handleLogout()">？</div>
@@ -865,7 +865,8 @@ try {
   // supabaseがnullのままDOMContentLoadedで処理する
 }
 
-let currentUser = null;
+// ログインスキップ：ダミーユーザーを設定
+let currentUser = { id: 'local-user-001', email: 'user@photogrow.app' };
 let pendingImageData = null;
 let pendingScoreData = null;
 let scoreChart = null;
@@ -884,12 +885,10 @@ function toggleAuth() {
 }
 
 
-// onAuthStateChangeはDOMContentLoadedで設定
+// ログインスキップ：onAuthStateChangeは使わない
 
 async function handleLogout() {
-  if (confirm('ログアウトしますか？')) {
-    await supabase.auth.signOut();
-  }
+  // ログインスキップ中はログアウト不要
 }
 
 // ===== APP INIT =====
@@ -1423,23 +1422,10 @@ function showToast(msg) {
 }
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  // 認証状態の監視
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('auth-screen').style.visibility = 'hidden';
-      document.getElementById('app').style.display = 'block';
-      initApp();
-    } else {
-      currentUser = null;
-      document.getElementById('auth-screen').style.display = 'flex';
-      document.getElementById('auth-screen').style.visibility = 'visible';
-      document.getElementById('app').style.display = 'none';
-    }
-  });
+  // アプリを直接起動
+  initApp();
 
-  // ログインボタン
+  // ログインボタン（非表示だが残す）
   const btn = document.getElementById('auth-btn');
   if (btn) {
     btn.addEventListener('click', async () => {
