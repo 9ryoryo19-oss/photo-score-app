@@ -872,57 +872,6 @@ function toggleAuth() {
   document.getElementById('auth-error').style.display = 'none';
 }
 
-function setupAuthBtn() {
-  const btn = document.getElementById('auth-btn');
-  if (!btn) return;
-  btn.addEventListener('click', async () => {
-  const email = document.getElementById('input-email').value.trim();
-  const password = document.getElementById('input-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-
-  if (!email || !password) {
-    errEl.textContent = 'メールアドレスとパスワードを入力してください';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  document.getElementById('auth-btn').textContent = '処理中...';
-
-  try {
-    let result;
-    if (isSignUp) {
-      result = await supabase.auth.signUp({ email, password });
-    } else {
-      result = await supabase.auth.signInWithPassword({ email, password });
-    }
-
-    if (result.error) {
-      errEl.textContent = result.error.message.includes('Invalid') ? 'メールアドレスまたはパスワードが間違っています' : result.error.message;
-      errEl.style.display = 'block';
-    } else if (isSignUp && !result.data.session) {
-      errEl.style.background = 'rgba(92,184,138,0.1)';
-      errEl.style.borderColor = 'var(--success)';
-      errEl.style.color = 'var(--success)';
-      errEl.textContent = '確認メールを送信しました！メールを確認してください。';
-      errEl.style.display = 'block';
-    }
-  } catch (e) {
-    errEl.textContent = 'エラーが発生しました';
-    errEl.style.display = 'block';
-  }
-
-  btn.textContent = isSignUp ? '登録する' : 'ログイン';
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  setupAuthBtn();
-  const lib = document.getElementById('file-input-library');
-  const cam = document.getElementById('file-input-camera');
-  if (lib) lib.addEventListener('change', handleFileChange);
-  if (cam) cam.addEventListener('change', handleFileChange);
-});
 
 supabase.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
@@ -1470,6 +1419,60 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  // ログインボタン
+  const btn = document.getElementById('auth-btn');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const email = document.getElementById('input-email').value.trim();
+      const password = document.getElementById('input-password').value;
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display = 'none';
+
+      if (!email || !password) {
+        errEl.textContent = 'メールアドレスとパスワードを入力してください';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = '処理中...';
+      btn.disabled = true;
+
+      try {
+        let result;
+        if (isSignUp) {
+          result = await supabase.auth.signUp({ email, password });
+        } else {
+          result = await supabase.auth.signInWithPassword({ email, password });
+        }
+
+        if (result.error) {
+          errEl.textContent = result.error.message.includes('Invalid') ? 'メールアドレスまたはパスワードが間違っています' : result.error.message;
+          errEl.style.display = 'block';
+        } else if (isSignUp && !result.data.session) {
+          errEl.style.background = 'rgba(92,184,138,0.1)';
+          errEl.style.borderColor = 'var(--success)';
+          errEl.style.color = 'var(--success)';
+          errEl.textContent = '確認メールを送信しました！メールを確認してください。';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.textContent = 'エラーが発生しました: ' + e.message;
+        errEl.style.display = 'block';
+      }
+
+      btn.textContent = isSignUp ? '登録する' : 'ログイン';
+      btn.disabled = false;
+    });
+  }
+
+  // ファイル入力
+  const lib = document.getElementById('file-input-library');
+  const cam = document.getElementById('file-input-camera');
+  if (lib) lib.addEventListener('change', handleFileChange);
+  if (cam) cam.addEventListener('change', handleFileChange);
+});
 </script>
 </body>
 </html>
