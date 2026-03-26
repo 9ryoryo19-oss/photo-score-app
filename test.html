@@ -5,45 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ログインテスト</title>
 <style>
-body { background:#111; color:white; font-family:sans-serif; padding:40px 20px; }
-input { display:block; width:100%; padding:14px; margin:8px 0; background:#222; color:white; border:1px solid #444; border-radius:8px; font-size:1rem; box-sizing:border-box; }
-button { display:block; width:100%; padding:15px; background:#c8a96e; color:#000; border:none; border-radius:8px; font-size:1rem; font-weight:bold; cursor:pointer; margin-top:8px; }
-#msg { margin-top:16px; padding:12px; border-radius:8px; display:none; }
+body{background:#111;color:white;font-family:sans-serif;padding:40px 20px}
+input{display:block;width:100%;padding:14px;margin:8px 0;background:#222;color:white;border:1px solid #444;border-radius:8px;font-size:1rem;box-sizing:border-box}
+button{display:block;width:100%;padding:15px;background:#c8a96e;color:#000;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:8px}
+#msg{margin-top:16px;padding:12px;border-radius:8px;display:none}
 </style>
 </head>
 <body>
-<h2>📸 PhotoGrow ログイン</h2>
+<h2>📸 PhotoGrow ログインテスト</h2>
 <input type="email" id="email" placeholder="メール" autocomplete="email">
 <input type="password" id="pass" placeholder="パスワード" autocomplete="current-password">
-<button onclick="login()">ログイン</button>
+<button onclick="doLoginTest()">ログイン</button>
 <div id="msg"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script>
 var SURL = 'https://mhoxmehluacprsmepmxu.supabase.co';
 var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
-var sb = window.supabase.createClient(SURL, SKEY);
 
 function show(text, ok) {
-  const m = document.getElementById('msg');
+  var m = document.getElementById('msg');
   m.textContent = text;
   m.style.background = ok ? '#1a3a2a' : '#3a1a1a';
   m.style.display = 'block';
 }
 
-async function login() {
-  const email = document.getElementById('email').value.trim();
-  const pass = document.getElementById('pass').value;
+function doLoginTest() {
+  var email = document.getElementById('email').value.trim();
+  var pass = document.getElementById('pass').value;
   if (!email || !pass) { show('入力してください', false); return; }
   show('ログイン中...', true);
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-    if (error) { show('エラー: ' + error.message, false); return; }
-    show('ログイン成功！ ' + data.user.email, true);
-    setTimeout(() => { window.location.href = '/'; }, 1500);
-  } catch(e) {
+  fetch(SURL + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SKEY },
+    body: JSON.stringify({ email: email, password: pass })
+  }).then(function(r) {
+    return r.json();
+  }).then(function(data) {
+    if (data.access_token) {
+      show('ログイン成功！ ' + data.user.email, true);
+      setTimeout(function() { window.location.href = '/'; }, 1500);
+    } else {
+      show('エラー: ' + (data.error_description || data.msg || JSON.stringify(data)), false);
+    }
+  }).catch(function(e) {
     show('例外: ' + e.message, false);
-  }
+  });
 }
 </script>
 </body>

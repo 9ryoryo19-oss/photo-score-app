@@ -685,7 +685,7 @@
       <label>パスワード</label>
       <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
     </div>
-    <button class="btn-primary" id="auth-btn">ログイン</button>
+    <button class="btn-primary" id="auth-btn" onclick="doLogin()">ログイン</button>
     <div class="auth-switch" id="auth-switch">
       アカウントがない方は <span onclick="toggleAuthMode()">新規登録</span>
     </div>
@@ -1399,9 +1399,14 @@ function showToast(msg) {
 }
 
 // ===== ログインボタンをbody読み込み完了後に設定 =====
-window.addEventListener('load', function() {
-  document.getElementById('auth-btn').onclick = doAuth;
-});
+// doLoginはHTMLのonclickから直接呼ばれる
+function doLogin() {
+  doAuth().catch(function(e) {
+    var errEl = document.getElementById('auth-error');
+    errEl.textContent = 'エラー: ' + e.message;
+    errEl.style.cssText = 'background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px;display:block';
+  });
+}
 </script>
 </body>
 </html</script>
