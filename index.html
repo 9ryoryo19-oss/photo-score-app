@@ -824,16 +824,73 @@
 <div class="toast" id="toast"></div>
 
 <!-- ライブラリを先に読み込み、その後インラインJSを実行 -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 <script>
 var SUPABASE_URL = 'https://mhoxmehluacprsmepmxu.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
 var CLOUDINARY_CLOUD = 'duu4fajsb';
 var CLOUDINARY_PRESET = 'photo_score_app';
 
-var _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
-});
+// Supabase REST API直接呼び出し（ライブラリ不使用）
+var _token = localStorage.getItem('sb_token') || '';
+var _refreshToken = localStorage.getItem('sb_refresh') || '';
+
+async function sbAuth(email, password, isSignup) {
+  var endpoint = isSignup ? 'signup' : 'token?grant_type=password';
+  var res = await fetch(SUPABASE_URL + '/auth/v1/' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+    body: JSON.stringify({ email: email, password: password })
+  });
+  return await res.json();
+}
+
+async function sbQuery(table, method, body, filter) {
+  var url = SUPABASE_URL + '/rest/v1/' + table + (filter || '');
+  var headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + _token,
+    'Prefer': method === 'POST' ? 'return=minimal' : 'return=representation'
+  };
+  var opts = { method: method, headers: headers };
+  if (body) opts.body = JSON.stringify(body);
+  var res = await fetch(url, opts);
+  if (res.status === 204 || res.status === 201) return { data: [], error: null };
+  var data = await res.json();
+  if (res.ok) return { data: data, error: null };
+  return { data: null, error: data };
+}
+
+// セッション復元
+async function restoreSession() {
+  if (!_token) return false;
+  var res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _token }
+  });
+  if (res.ok) {
+    var user = await res.json();
+    currentUser = user;
+    return true;
+  }
+  // トークンリフレッシュを試みる
+  if (_refreshToken) {
+    var r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ refresh_token: _refreshToken })
+    });
+    if (r.ok) {
+      var d = await r.json();
+      _token = d.access_token;
+      _refreshToken = d.refresh_token;
+      localStorage.setItem('sb_token', _token);
+      localStorage.setItem('sb_refresh', _refreshToken);
+      currentUser = d.user;
+      return true;
+    }
+  }
+  return false;
+}
 
 var currentUser = null;
 var pendingImageData = null;
@@ -872,44 +929,23 @@ async function doAuth() {
   btn.textContent = '処理中...';
   btn.disabled = true;
 
-  try {
-    const result = isSignUp
-      ? await _supabase.auth.signUp({ email, password })
-      : await _supabase.auth.signInWithPassword({ email, password });
-
-    if (result.error) {
-      errEl.textContent = 'エラー: ' + result.error.message;
-      errEl.style.display = 'block';
-    } else if (isSignUp && !result.data?.session) {
-      errEl.style.cssText = 'background:rgba(92,184,138,0.1);border:1px solid #5cb88a;color:#5cb88a;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px;display:block';
-      errEl.textContent = '確認メールを送信しました！';
-    }
-  } catch(e) {
-    errEl.textContent = 'エラー: ' + e.message;
-    errEl.style.display = 'block';
-  }
-
   btn.textContent = isSignUp ? '登録する' : 'ログイン';
   btn.disabled = false;
 }
 
-_supabase.auth.onAuthStateChange((event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    const email = currentUser.email || '';
-    document.getElementById('user-avatar').textContent = email.charAt(0).toUpperCase();
-    initApp();
-  } else {
-    currentUser = null;
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-});
-
 async function handleLogout() {
-  if (confirm('ログアウトしますか？')) await _supabase.auth.signOut();
+  if (!confirm('ログアウトしますか？')) return;
+  await fetch(SUPABASE_URL + '/auth/v1/logout', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _token }
+  });
+  _token = '';
+  _refreshToken = '';
+  localStorage.removeItem('sb_token');
+  localStorage.removeItem('sb_refresh');
+  currentUser = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
 }
 
 // ===== APP =====
@@ -1139,7 +1175,7 @@ async function savePhoto() {
     } else {
       imageUrl = await compressImage(pendingImageData, 400);
     }
-    const { error } = await _supabase.from('photos').insert({
+    var saveResult = await sbQuery('photos', 'POST', {
       user_id: currentUser.id,
       image_url: imageUrl,
       score: pendingScoreData.total,
@@ -1150,7 +1186,7 @@ async function savePhoto() {
       sharpness: pendingScoreData.sharpness,
       advice: pendingScoreData.advice,
       created_at: new Date().toISOString()
-    });
+    }, null);
     if (error) throw error;
     showToast('✅ 保存しました！');
     removePreview();
@@ -1189,7 +1225,7 @@ async function compressImage(dataURL, maxSize) {
 
 // ===== HOME =====
 async function loadHomeStats() {
-  const { data } = await _supabase.from('photos').select('score,created_at').eq('user_id', currentUser.id).order('created_at', {ascending:true});
+  var { data } = await sbQuery('photos', 'GET', null, '?select=score,created_at&user_id=eq.' + currentUser.id + '&order=created_at.asc');
   if (!data) return;
   const count = data.length;
   const avg = count > 0 ? Math.round(data.reduce((s,p) => s+p.score, 0) / count) : null;
@@ -1273,7 +1309,7 @@ async function loadGallery() {
   document.getElementById('gallery-grid').innerHTML = '';
   document.getElementById('gallery-empty').style.display = 'none';
   const col = currentSort === 'score' ? 'score' : 'created_at';
-  const { data } = await _supabase.from('photos').select('*').eq('user_id', currentUser.id).order(col, {ascending:false});
+  var { data } = await sbQuery('photos', 'GET', null, '?select=*&user_id=eq.' + currentUser.id + '&order=' + col + '.desc');
   document.getElementById('gallery-loading').style.display = 'none';
   if (!data || !data.length) { document.getElementById('gallery-empty').style.display = 'block'; return; }
   window._gallery = {};
@@ -1324,7 +1360,8 @@ function closeModalBg(e) {
 
 async function deletePhoto(id) {
   if (!confirm('この写真を削除しますか？')) return;
-  const { error } = await _supabase.from('photos').delete().eq('id', id).eq('user_id', currentUser.id);
+  var delResult = await sbQuery('photos', 'DELETE', null, '?id=eq.' + id + '&user_id=eq.' + currentUser.id);
+  var error = delResult.error;
   if (error) { showToast('削除失敗'); return; }
   showToast('🗑️ 削除しました');
   delete window._gallery[id];
@@ -1363,7 +1400,7 @@ function showToast(msg) {
 
 // ===== ログインボタンをbody読み込み完了後に設定 =====
 window.addEventListener('load', function() {
-  document.getElementById('auth-btn').addEventListener('click', doAuth);
+  document.getElementById('auth-btn').onclick = doAuth;
 });
 </script>
 </body>
