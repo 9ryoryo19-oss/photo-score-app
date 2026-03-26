@@ -911,27 +911,6 @@ function toggleAuthMode() {
   document.getElementById('auth-error').style.display = 'none';
 }
 
-async function doAuth() {
-  const email = document.getElementById('input-email').value.trim();
-  const password = document.getElementById('input-password').value;
-  const errEl = document.getElementById('auth-error');
-  const btn = document.getElementById('auth-btn');
-
-  errEl.style.display = 'none';
-  errEl.style.cssText = 'background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
-
-  if (!email || !password) {
-    errEl.textContent = 'メールアドレスとパスワードを入力してください';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.textContent = '処理中...';
-  btn.disabled = true;
-
-  btn.textContent = isSignUp ? '登録する' : 'ログイン';
-  btn.disabled = false;
-}
 
 async function handleLogout() {
   if (!confirm('ログアウトしますか？')) return;
@@ -1399,14 +1378,7 @@ function showToast(msg) {
 }
 
 // ===== ログインボタンをbody読み込み完了後に設定 =====
-// doLoginはHTMLのonclickから直接呼ばれる
-function doLogin() {
-  doAuth().catch(function(e) {
-    var errEl = document.getElementById('auth-error');
-    errEl.textContent = 'エラー: ' + e.message;
-    errEl.style.cssText = 'background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px;display:block';
-  });
-}
+
 </script>
 </body>
 </html</script>
