@@ -745,15 +745,17 @@
   <div class="auth-card">
     <div class="auth-title" id="auth-title">ログイン</div>
     <div class="auth-error" id="auth-error"></div>
-    <div class="form-group">
-      <label>メールアドレス</label>
-      <input type="email" id="input-email" placeholder="example@email.com" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label>パスワード</label>
-      <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
-    </div>
-    <button class="btn-primary" id="auth-btn">ログイン</button>
+    <form id="auth-form" onsubmit="doLogin(); return false;" novalidate>
+      <div class="form-group">
+        <label>メールアドレス</label>
+        <input type="email" id="input-email" placeholder="example@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>パスワード</label>
+        <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary" id="auth-btn">ログイン</button>
+    </form>
     <div class="auth-switch" id="auth-switch">アカウントがない方は <span id="toggle-link">新規登録</span></div>
   </div>
 </div>
@@ -929,14 +931,6 @@ window.onload = function() {
     if (d) { e.stopPropagation(); doDelete(d.dataset.id); return; }
     var g = e.target.closest('.gallery-item');
     if (g) { openDetail(g.dataset.id); }
-  };
-
-  // Enterキーでログイン
-  document.getElementById('input-password').onkeydown = function(e) {
-    if (e.key === 'Enter') doLogin();
-  };
-  document.getElementById('input-email').onkeydown = function(e) {
-    if (e.key === 'Enter') document.getElementById('input-password').focus();
   };
 
   // セッション復元
