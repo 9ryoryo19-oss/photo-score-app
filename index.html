@@ -672,10 +672,6 @@
   <div class="auth-card">
     <div class="auth-title" id="auth-title">ログイン</div>
     <div class="auth-error" id="auth-error"></div>
-    <div class="form-group" id="name-group" style="display:none">
-      <label>ニックネーム</label>
-      <input type="text" id="input-name" placeholder="あなたの名前">
-    </div>
     <div class="form-group">
       <label>メールアドレス</label>
       <input type="email" id="input-email" placeholder="example@email.com" autocomplete="email">
@@ -685,9 +681,7 @@
       <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
     </div>
     <button class="btn-primary" id="auth-btn">ログイン</button>
-    <div class="auth-switch" id="auth-switch">
-      アカウントがない方は <span onclick="toggleAuthMode()">新規登録</span>
-    </div>
+    <div class="auth-switch" id="auth-switch">アカウントがない方は <span id="toggle-link">新規登録</span></div>
   </div>
 </div>
 
@@ -696,7 +690,6 @@
     <div class="app-header-logo">📸 PhotoGrow</div>
     <div class="user-avatar" id="user-avatar">？</div>
   </header>
-
   <div class="page active" id="page-home">
     <div class="stats-row">
       <div class="stat-card"><div class="stat-value" id="stat-count">0</div><div class="stat-label">撮影枚数</div></div>
@@ -712,40 +705,24 @@
     <div class="section-title">📈 スコア推移</div>
     <div class="chart-card"><canvas id="score-chart" height="180"></canvas></div>
   </div>
-
   <div class="page" id="page-upload">
     <div class="page-header">写真を採点する</div>
     <div id="upload-area">
       <div class="upload-btn-row">
-        <div class="upload-btn-card" id="btn-library">
-          <input type="file" id="file-input-library" accept="image/*" style="display:none">
-          <div class="upload-icon">🖼️</div>
-          <div class="upload-text">写真ライブラリ</div>
-        </div>
-        <div class="upload-btn-card" id="btn-camera">
-          <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none">
-          <div class="upload-icon">📷</div>
-          <div class="upload-text">カメラで撮影</div>
-        </div>
+        <div class="upload-btn-card" id="btn-library"><input type="file" id="file-input-library" accept="image/*" style="display:none"><div class="upload-icon">🖼️</div><div class="upload-text">写真ライブラリ</div></div>
+        <div class="upload-btn-card" id="btn-camera"><input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none"><div class="upload-icon">📷</div><div class="upload-text">カメラで撮影</div></div>
       </div>
     </div>
-    <div class="preview-container" id="preview-container">
-      <img id="preview-img" src="" alt="プレビュー">
-      <button class="preview-remove" id="btn-remove-preview">✕</button>
-    </div>
+    <div class="preview-container" id="preview-container"><img id="preview-img" src="" alt=""><button class="preview-remove" id="btn-remove">✕</button></div>
     <div class="loading" id="scoring-loading"><div class="spinner"></div><div>採点中...</div></div>
     <div class="score-result" id="score-result">
       <div class="score-circle" id="score-circle"><div class="score-number" id="score-number">0</div></div>
       <div class="score-grade" id="score-grade">—</div>
       <div class="score-breakdown" id="score-breakdown"></div>
-      <div class="advice-section">
-        <div class="advice-title">💡 アドバイス</div>
-        <div class="advice-text" id="advice-text"></div>
-      </div>
+      <div class="advice-section"><div class="advice-title">💡 アドバイス</div><div class="advice-text" id="advice-text"></div></div>
       <button class="btn-save" id="btn-save" style="margin-top:20px">💾 成長記録に保存する</button>
     </div>
   </div>
-
   <div class="page" id="page-gallery">
     <div class="page-header">ギャラリー</div>
     <div class="sort-tabs">
@@ -754,12 +731,8 @@
     </div>
     <div class="loading" id="gallery-loading"><div class="spinner"></div><div>読み込み中...</div></div>
     <div class="gallery-grid" id="gallery-grid"></div>
-    <div class="empty-state" id="gallery-empty" style="display:none">
-      <div class="empty-icon">🖼️</div>
-      <div>まだ写真がありません</div>
-    </div>
+    <div class="empty-state" id="gallery-empty" style="display:none"><div class="empty-icon">🖼️</div><div>まだ写真がありません</div></div>
   </div>
-
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span>ホーム</div>
     <div class="nav-item" id="nav-upload"><span class="nav-icon">📷</span>採点</div>
@@ -780,286 +753,267 @@
     <div class="advice-section"><div class="advice-title">💡 アドバイス</div><div class="advice-text" id="modal-advice"></div></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 // ===== 設定 =====
-var SB_URL = 'https://mhoxmehluacprsmepmxu.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
-var CL_CLOUD = 'duu4fajsb';
-var CL_PRESET = 'photo_score_app';
+var SB =  + SB_URL + ;
+var SK =  + SB_KEY + ;
+var CC =  + CL_CLOUD + ;
+var CP =  + CL_PRESET + ;
 
-// ===== 状態 =====
-var gUser = null;
-var gToken = '';
-var gRefresh = '';
-var gPendingImg = null;
-var gPendingScore = null;
-var gSort = 'latest';
-var gGallery = {};
-var gChart = null;
-var gIsSignUp = false;
+// ===== グローバル変数 =====
+var G = {
+  user: null, token: '', refresh: '',
+  pendingImg: null, pendingScore: null,
+  sort: 'latest', gallery: {}, chart: null,
+  isSignUp: false
+};
 
-// ===== ユーティリティ =====
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 2800);
-}
+// ===== 起動 =====
+window.onload = function() {
+  // イベント設定
+  document.getElementById('auth-btn').onclick = doLogin;
+  document.getElementById('toggle-link').onclick = toggleMode;
+  document.getElementById('user-avatar').onclick = doLogout;
+  document.getElementById('nav-home').onclick = function() { goPage('home'); };
+  document.getElementById('nav-upload').onclick = function() { goPage('upload'); };
+  document.getElementById('nav-gallery').onclick = function() { goPage('gallery'); };
+  document.getElementById('tab-latest').onclick = function() { setSort('latest'); };
+  document.getElementById('tab-score').onclick = function() { setSort('score'); };
+  document.getElementById('btn-library').onclick = function() { document.getElementById('file-input-library').click(); };
+  document.getElementById('btn-camera').onclick = function() { document.getElementById('file-input-camera').click(); };
+  document.getElementById('file-input-library').onchange = function(e) { if (e.target.files[0]) processFile(e.target.files[0]); };
+  document.getElementById('file-input-camera').onchange = function(e) { if (e.target.files[0]) processFile(e.target.files[0]); };
+  document.getElementById('btn-remove').onclick = resetUpload;
+  document.getElementById('btn-save').onclick = doSave;
+  document.getElementById('btn-modal-close').onclick = function() { document.getElementById('detail-modal').classList.remove('open'); };
+  document.getElementById('detail-modal').onclick = function(e) { if (e.target === this) this.classList.remove('open'); };
+  document.getElementById('gallery-grid').onclick = function(e) {
+    var d = e.target.closest('.delete-btn');
+    if (d) { doDelete(d.dataset.id); return; }
+    var g = e.target.closest('.gallery-item');
+    if (g) { openDetail(g.dataset.id); }
+  };
 
-function fmtDate(iso) {
-  var d = new Date(iso);
-  return d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate();
-}
-
-function getGrade(score) {
-  if (score >= 90) return {label:'🌟 マスタークラス', color:'#FFD700'};
-  if (score >= 80) return {label:'✨ エキスパート', color:'#c8a96e'};
-  if (score >= 70) return {label:'📸 アドバンスド', color:'#5cb88a'};
-  if (score >= 60) return {label:'🎯 インターミディエイト', color:'#7eb8d8'};
-  if (score >= 50) return {label:'📷 アマチュア', color:'#a09890'};
-  return {label:'🌱 ビギナー', color:'#888'};
-}
-
-function sbFetch(path, opts) {
-  opts = opts || {};
-  opts.headers = opts.headers || {};
-  opts.headers['apikey'] = SB_KEY;
-  opts.headers['Authorization'] = 'Bearer ' + gToken;
-  return fetch(SB_URL + path, opts);
-}
+  // セッション復元
+  try {
+    var t = localStorage.getItem('sb_t');
+    if (t) {
+      G.token = t;
+      G.refresh = localStorage.getItem('sb_r') || '';
+      fetch(SB + '/auth/v1/user', { headers: { apikey: SK, Authorization: 'Bearer ' + t } })
+        .then(function(r) { return r.json(); })
+        .then(function(u) {
+          if (u && u.id) { G.user = u; showApp(); }
+          else { G.token = ''; }
+        }).catch(function() { G.token = ''; });
+    }
+  } catch(e) {}
+};
 
 // ===== 認証 =====
-function toggleAuthMode() {
-  gIsSignUp = !gIsSignUp;
-  document.getElementById('auth-title').textContent = gIsSignUp ? '新規登録' : 'ログイン';
-  document.getElementById('auth-btn').textContent = gIsSignUp ? '登録する' : 'ログイン';
-  document.getElementById('auth-switch').innerHTML = gIsSignUp
-    ? 'すでにアカウントがある方は <span onclick="toggleAuthMode()">ログイン</span>'
-    : 'アカウントがない方は <span onclick="toggleAuthMode()">新規登録</span>';
-  document.getElementById('name-group').style.display = gIsSignUp ? 'block' : 'none';
+function toggleMode() {
+  G.isSignUp = !G.isSignUp;
+  document.getElementById('auth-title').textContent = G.isSignUp ? '新規登録' : 'ログイン';
+  document.getElementById('auth-btn').textContent = G.isSignUp ? '登録する' : 'ログイン';
+  document.getElementById('toggle-link').textContent = G.isSignUp ? 'ログイン' : '新規登録';
+  document.getElementById('auth-switch').firstChild.textContent = G.isSignUp ? 'すでにアカウントがある方は ' : 'アカウントがない方は ';
   document.getElementById('auth-error').style.display = 'none';
+}
+
+function showError(msg) {
+  var e = document.getElementById('auth-error');
+  e.textContent = msg;
+  e.style.cssText = 'display:block;background:rgba(224,112,112,0.15);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
 }
 
 function doLogin() {
   var email = document.getElementById('input-email').value.trim();
-  var password = document.getElementById('input-password').value;
-  var errEl = document.getElementById('auth-error');
+  var pw = document.getElementById('input-password').value;
   var btn = document.getElementById('auth-btn');
-
-  errEl.style.cssText = 'display:none';
-  if (!email || !password) {
-    errEl.textContent = 'メールアドレスとパスワードを入力してください';
-    errEl.style.cssText = 'display:block;background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
-    return;
-  }
-
-  btn.textContent = '処理中...';
-  btn.disabled = true;
-
-  var endpoint = gIsSignUp ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password';
-  fetch(SB_URL + endpoint, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'apikey': SB_KEY},
-    body: JSON.stringify({email: email, password: password})
-  }).then(function(r) {
-    return r.json();
-  }).then(function(data) {
-    if (data.access_token) {
-      gToken = data.access_token;
-      gRefresh = data.refresh_token || '';
-      gUser = data.user;
-      try { localStorage.setItem('sb_t', gToken); localStorage.setItem('sb_r', gRefresh); } catch(e) {}
-      showMainApp();
-    } else if (gIsSignUp && data.id) {
-      errEl.textContent = '確認メールを送信しました！';
-      errEl.style.cssText = 'display:block;background:rgba(92,184,138,0.1);border:1px solid #5cb88a;color:#5cb88a;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
-    } else {
-      errEl.textContent = 'エラー: ' + (data.error_description || data.msg || data.error || 'ログインに失敗しました');
-      errEl.style.cssText = 'display:block;background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
-    }
-    btn.textContent = gIsSignUp ? '登録する' : 'ログイン';
-    btn.disabled = false;
-  }).catch(function(e) {
-    errEl.textContent = 'ネットワークエラー: ' + e.message;
-    errEl.style.cssText = 'display:block;background:rgba(224,112,112,0.1);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
-    btn.textContent = gIsSignUp ? '登録する' : 'ログイン';
-    btn.disabled = false;
-  });
-}
-
-function showMainApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  var em = gUser && gUser.email ? gUser.email : '';
-  document.getElementById('user-avatar').textContent = em ? em.charAt(0).toUpperCase() : '?';
-  loadHomeStats();
-  loadGallery();
+  document.getElementById('auth-error').style.display = 'none';
+  if (!email || !pw) { showError('メールアドレスとパスワードを入力してください'); return; }
+  btn.textContent = '処理中...'; btn.disabled = true;
+  var ep = G.isSignUp ? (SB + '/auth/v1/signup') : (SB + '/auth/v1/token?grant_type=password');
+  var body = JSON.stringify({ email: email, password: pw });
+  fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SK }, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.textContent = G.isSignUp ? '登録する' : 'ログイン'; btn.disabled = false;
+      if (d.access_token) {
+        G.token = d.access_token; G.refresh = d.refresh_token || ''; G.user = d.user;
+        try { localStorage.setItem('sb_t', G.token); localStorage.setItem('sb_r', G.refresh); } catch(e2) {}
+        showApp();
+      } else if (G.isSignUp && d.id) {
+        var e = document.getElementById('auth-error');
+        e.textContent = '確認メールを送信しました！メールを確認してください。';
+        e.style.cssText = 'display:block;background:rgba(92,184,138,0.15);border:1px solid #5cb88a;color:#5cb88a;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
+      } else {
+        showError(d.error_description || d.msg || d.error || 'ログインに失敗しました');
+      }
+    })
+    .catch(function(e) {
+      btn.textContent = G.isSignUp ? '登録する' : 'ログイン'; btn.disabled = false;
+      showError('ネットワークエラー: ' + e.message);
+    });
 }
 
 function doLogout() {
   if (!confirm('ログアウトしますか？')) return;
-  fetch(SB_URL + '/auth/v1/logout', {
-    method: 'POST',
-    headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + gToken}
-  }).then(function() {}).catch(function() {});
-  gToken = ''; gRefresh = ''; gUser = null;
+  fetch(SB + '/auth/v1/logout', { method: 'POST', headers: { apikey: SK, Authorization: 'Bearer ' + G.token } }).catch(function(){});
+  G.token = ''; G.refresh = ''; G.user = null;
   try { localStorage.removeItem('sb_t'); localStorage.removeItem('sb_r'); } catch(e) {}
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 }
 
-// ===== ナビゲーション =====
-function switchPage(name) {
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  var em = G.user && G.user.email ? G.user.email : '';
+  document.getElementById('user-avatar').textContent = em ? em[0].toUpperCase() : '?';
+  loadStats(); loadGallery();
+}
+
+// ===== DB =====
+function sbGet(path) {
+  return fetch(SB + '/rest/v1/' + path, {
+    headers: { apikey: SK, Authorization: 'Bearer ' + G.token, 'Content-Type': 'application/json' }
+  }).then(function(r) { return r.json(); });
+}
+
+function sbPost(path, body) {
+  return fetch(SB + '/rest/v1/' + path, {
+    method: 'POST',
+    headers: { apikey: SK, Authorization: 'Bearer ' + G.token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+}
+
+function sbDelete(path) {
+  return fetch(SB + '/rest/v1/' + path, {
+    method: 'DELETE',
+    headers: { apikey: SK, Authorization: 'Bearer ' + G.token, 'Content-Type': 'application/json' }
+  });
+}
+
+// ===== ナビ =====
+function goPage(name) {
   document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
   document.getElementById('page-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'gallery') loadGallery();
-  if (name === 'home') loadHomeStats();
-  if (name === 'upload' && !gPendingImg) resetUpload();
-}
-
-function resetUpload() {
-  document.getElementById('upload-area').style.display = 'block';
-  document.getElementById('preview-container').style.display = 'none';
-  document.getElementById('score-result').style.display = 'none';
-  document.getElementById('scoring-loading').style.display = 'none';
+  if (name === 'home') loadStats();
+  if (name === 'upload' && !G.pendingImg) resetUpload();
 }
 
 // ===== ホーム =====
-function loadHomeStats() {
-  sbFetch('/rest/v1/photos?select=score,created_at&user_id=eq.' + gUser.id + '&order=created_at.asc', {
-    headers: {'Content-Type': 'application/json'}
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (!Array.isArray(data)) return;
-    var count = data.length;
-    var avg = count > 0 ? Math.round(data.reduce(function(s,p) { return s+p.score; }, 0) / count) : null;
-    var best = count > 0 ? Math.max.apply(null, data.map(function(p) { return p.score; })) : null;
-    document.getElementById('stat-count').textContent = count;
-    document.getElementById('stat-avg').textContent = avg !== null ? avg : '—';
-    document.getElementById('stat-best').textContent = best !== null ? best : '—';
-    updateRank(avg || 0, count);
-    updateBadges(count, best || 0, avg || 0);
-    updateChart(data);
-  }).catch(function() {});
+function loadStats() {
+  sbGet('photos?select=score,created_at&user_id=eq.' + G.user.id + '&order=created_at.asc')
+    .then(function(data) {
+      if (!Array.isArray(data)) return;
+      var n = data.length;
+      var avg = n ? Math.round(data.reduce(function(s,p){return s+p.score;},0)/n) : null;
+      var best = n ? Math.max.apply(null,data.map(function(p){return p.score;})) : null;
+      document.getElementById('stat-count').textContent = n;
+      document.getElementById('stat-avg').textContent = avg !== null ? avg : '—';
+      document.getElementById('stat-best').textContent = best !== null ? best : '—';
+      updateRank(avg||0, n); updateBadges(n, best||0, avg||0); updateChart(data);
+    }).catch(function(){});
 }
 
-function updateRank(avg, count) {
-  var icon, name, desc;
-  if (count===0){icon='🌱';name='ビギナー';desc='まずは1枚目を撮ってみよう！';}
-  else if (avg<50){icon='📷';name='カメラ初心者';desc='基礎をマスターしよう！';}
-  else if (avg<60){icon='🎯';name='アマチュア';desc='もう少し上を目指そう';}
-  else if (avg<70){icon='📸';name='フォトグラファー';desc='構図と光を意識しよう';}
-  else if (avg<80){icon='✨';name='エキスパート';desc='素晴らしいセンスです！';}
-  else{icon='🌟';name='マスター';desc='あなたはプロ級！';}
-  document.getElementById('rank-icon').textContent = icon;
-  document.getElementById('rank-name').textContent = name;
-  document.getElementById('rank-desc').textContent = desc;
+function updateRank(avg, n) {
+  var i,nm,d;
+  if(!n){i='🌱';nm='ビギナー';d='まずは1枚目を撮ってみよう！';}
+  else if(avg<50){i='📷';nm='カメラ初心者';d='基礎をマスターしよう！';}
+  else if(avg<60){i='🎯';nm='アマチュア';d='もう少し上を目指そう';}
+  else if(avg<70){i='📸';nm='フォトグラファー';d='構図と光を意識しよう';}
+  else if(avg<80){i='✨';nm='エキスパート';d='素晴らしいセンスです！';}
+  else{i='🌟';nm='マスター';d='あなたはプロ級！';}
+  document.getElementById('rank-icon').textContent=i;
+  document.getElementById('rank-name').textContent=nm;
+  document.getElementById('rank-desc').textContent=d;
 }
 
-function updateBadges(count, best, avg) {
-  var defs = [
-    {icon:'📸',name:'初撮り',e:count>=1},
-    {icon:'🔟',name:'10枚達成',e:count>=10},
-    {icon:'💯',name:'100枚の旅',e:count>=100},
-    {icon:'⭐',name:'初60点',e:best>=60},
-    {icon:'🌟',name:'80点超え',e:best>=80},
-    {icon:'👑',name:'90点超え',e:best>=90},
-    {icon:'📈',name:'平均60以上',e:avg>=60},
-    {icon:'🏆',name:'平均75以上',e:avg>=75},
+function updateBadges(n,best,avg) {
+  var defs=[
+    {i:'📸',nm:'初撮り',e:n>=1},{i:'🔟',nm:'10枚達成',e:n>=10},
+    {i:'⭐',nm:'初60点',e:best>=60},{i:'🌟',nm:'80点超え',e:best>=80},
+    {i:'👑',nm:'90点超え',e:best>=90},{i:'📈',nm:'平均60以上',e:avg>=60},
+    {i:'🏆',nm:'平均75以上',e:avg>=75}
   ];
-  document.getElementById('badges-row').innerHTML = defs.map(function(b) {
-    return '<div class="badge-item ' + (b.e?'earned':'') + '"><div class="badge-icon" style="opacity:' + (b.e?1:0.3) + '">' + b.icon + '</div><div class="badge-name">' + b.name + '</div></div>';
+  document.getElementById('badges-row').innerHTML=defs.map(function(b){
+    return '<div class="badge-item '+(b.e?'earned':'')+'"><div class="badge-icon" style="opacity:'+(b.e?1:0.3)+'">'+b.i+'</div><div class="badge-name">'+b.nm+'</div></div>';
   }).join('');
 }
 
 function updateChart(data) {
-  var ctx = document.getElementById('score-chart').getContext('2d');
-  if (gChart) { gChart.destroy(); gChart = null; }
-  if (!data.length) return;
-  gChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.map(function(_,i) { return '#'+(i+1); }),
-      datasets: [{data: data.map(function(p) { return p.score; }), borderColor:'#c8a96e', backgroundColor:'rgba(200,169,110,0.1)', borderWidth:2, pointBackgroundColor:'#c8a96e', pointRadius:4, tension:0.4, fill:true}]
-    },
-    options: {responsive:true, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100,ticks:{color:'#a09890'},grid:{color:'#2a2a38'}},x:{ticks:{color:'#a09890'},grid:{display:false}}}}
-  });
+  var ctx=document.getElementById('score-chart').getContext('2d');
+  if(G.chart){G.chart.destroy();G.chart=null;}
+  if(!data.length)return;
+  G.chart=new Chart(ctx,{type:'line',data:{
+    labels:data.map(function(_,i){return '#'+(i+1);}),
+    datasets:[{data:data.map(function(p){return p.score;}),borderColor:'#c8a96e',backgroundColor:'rgba(200,169,110,0.1)',borderWidth:2,pointBackgroundColor:'#c8a96e',pointRadius:4,tension:0.4,fill:true}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#a09890'},grid:{color:'#2a2a38'}},x:{ticks:{color:'#a09890'},grid:{display:false}}}}});
 }
 
 // ===== ギャラリー =====
-function switchSort(sort) {
-  gSort = sort;
-  document.getElementById('tab-latest').classList.toggle('active', sort==='latest');
-  document.getElementById('tab-score').classList.toggle('active', sort==='score');
+function setSort(s) {
+  G.sort=s;
+  document.getElementById('tab-latest').classList.toggle('active',s==='latest');
+  document.getElementById('tab-score').classList.toggle('active',s==='score');
   loadGallery();
 }
 
 function loadGallery() {
-  document.getElementById('gallery-loading').style.display = 'block';
-  document.getElementById('gallery-grid').innerHTML = '';
-  document.getElementById('gallery-empty').style.display = 'none';
-  var col = gSort === 'score' ? 'score' : 'created_at';
-  sbFetch('/rest/v1/photos?select=*&user_id=eq.' + gUser.id + '&order=' + col + '.desc', {
-    headers: {'Content-Type': 'application/json'}
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    document.getElementById('gallery-loading').style.display = 'none';
-    if (!Array.isArray(data) || !data.length) {
-      document.getElementById('gallery-empty').style.display = 'block';
-      return;
-    }
-    gGallery = {};
-    data.forEach(function(p) { gGallery[p.id] = p; });
-    document.getElementById('gallery-grid').innerHTML = data.map(function(p) {
-      return '<div class="gallery-item" data-id="' + p.id + '">' +
-        '<img class="gallery-img" src="' + p.image_url + '" loading="lazy" onerror="this.onerror=null;this.style.background='var(--bg3)';this.style.minHeight='120px'">' +
-        '<div class="gallery-info">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between">' +
-        '<div class="gallery-score">' + p.score + '点</div>' +
-        '<button class="delete-btn" data-id="' + p.id + '">🗑️</button>' +
-        '</div>' +
-        '<div class="gallery-date">📅 ' + fmtDate(p.created_at) + '</div>' +
-        '</div></div>';
-    }).join('');
-  }).catch(function() {
-    document.getElementById('gallery-loading').style.display = 'none';
-    document.getElementById('gallery-empty').style.display = 'block';
-  });
+  document.getElementById('gallery-loading').style.display='block';
+  document.getElementById('gallery-grid').innerHTML='';
+  document.getElementById('gallery-empty').style.display='none';
+  var col=G.sort==='score'?'score':'created_at';
+  sbGet('photos?select=*&user_id=eq.'+G.user.id+'&order='+col+'.desc')
+    .then(function(data) {
+      document.getElementById('gallery-loading').style.display='none';
+      if(!Array.isArray(data)||!data.length){document.getElementById('gallery-empty').style.display='block';return;}
+      G.gallery={};
+      data.forEach(function(p){G.gallery[p.id]=p;});
+      document.getElementById('gallery-grid').innerHTML=data.map(function(p){
+        return '<div class="gallery-item" data-id="'+p.id+'">'+
+          '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background='var(--bg3)';this.style.minHeight='120px'">'+
+          '<div class="gallery-info">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between">'+
+          '<div class="gallery-score">'+p.score+'点</div>'+
+          '<button class="delete-btn" data-id="'+p.id+'">🗑️</button>'+
+          '</div>'+
+          '<div class="gallery-date">📅 '+fmtDate(p.created_at)+'</div>'+
+          '</div></div>';
+      }).join('');
+    }).catch(function(){document.getElementById('gallery-loading').style.display='none';});
 }
 
 function openDetail(id) {
-  var p = gGallery[id];
-  if (!p) return;
-  document.getElementById('modal-img').src = p.image_url;
-  document.getElementById('modal-score').textContent = p.score + '点';
-  var grade = getGrade(p.score);
-  document.getElementById('modal-grade').textContent = grade.label;
-  document.getElementById('modal-grade').style.color = grade.color;
-  document.getElementById('modal-date').textContent = '📅 ' + fmtDate(p.created_at);
-  var adv = document.getElementById('modal-advice');
-  adv.style.whiteSpace = 'pre-line';
-  adv.textContent = p.advice || '';
-  var items = [{'n':'明るさ','v':p.brightness},{'n':'彩度','v':p.saturation},{'n':'コントラスト','v':p.contrast},{'n':'構図','v':p.composition},{'n':'シャープ','v':p.sharpness}];
-  document.getElementById('modal-breakdown').innerHTML = items.map(function(b) {
+  var p=G.gallery[id]; if(!p)return;
+  document.getElementById('modal-img').src=p.image_url;
+  document.getElementById('modal-score').textContent=p.score+'点';
+  var gr=grade(p.score);
+  document.getElementById('modal-grade').textContent=gr.label;
+  document.getElementById('modal-grade').style.color=gr.color;
+  document.getElementById('modal-date').textContent='📅 '+fmtDate(p.created_at);
+  var adv=document.getElementById('modal-advice');
+  adv.style.whiteSpace='pre-line';adv.textContent=p.advice||'';
+  var items=[{n:'明るさ',v:p.brightness},{n:'彩度',v:p.saturation},{n:'コントラスト',v:p.contrast},{n:'構図',v:p.composition},{n:'シャープ',v:p.sharpness}];
+  document.getElementById('modal-breakdown').innerHTML=items.map(function(b){
     return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+(b.v||0)+'%"></div></div><div class="score-item-val">'+(b.v||0)+'点</div></div>';
   }).join('');
   document.getElementById('detail-modal').classList.add('open');
 }
 
-function deletePhoto(id) {
-  if (!confirm('この写真を削除しますか？')) return;
-  sbFetch('/rest/v1/photos?id=eq.' + id + '&user_id=eq.' + gUser.id, {
-    method: 'DELETE',
-    headers: {'Content-Type': 'application/json'}
-  }).then(function() {
-    showToast('🗑️ 削除しました');
-    delete gGallery[id];
-    loadHomeStats();
-    loadGallery();
-  }).catch(function() { showToast('削除に失敗しました'); });
+function doDelete(id) {
+  if(!confirm('この写真を削除しますか？'))return;
+  sbDelete('photos?id=eq.'+id+'&user_id=eq.'+G.user.id)
+    .then(function(){toast('🗑️ 削除しました');delete G.gallery[id];loadStats();loadGallery();})
+    .catch(function(){toast('削除に失敗しました');});
 }
 
 // ===== 採点 =====
@@ -1192,161 +1146,106 @@ async function analyzeAndScore(imageEl) {
 
 
 
-function handleFile(file) {
-  if (!file) return;
-  window._photoDate = file.lastModified ? new Date(file.lastModified).toISOString() : new Date().toISOString();
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    gPendingImg = ev.target.result;
-    var img = document.getElementById('preview-img');
-    img.src = gPendingImg;
-    document.getElementById('preview-container').style.display = 'block';
-    document.getElementById('upload-area').style.display = 'none';
-    document.getElementById('score-result').style.display = 'none';
-    img.onload = function() {
-      document.getElementById('scoring-loading').style.display = 'block';
-      analyzeAndScore(img).then(function(scores) {
-        gPendingScore = scores;
-        showScoreResult(scores);
-        document.getElementById('scoring-loading').style.display = 'none';
-      }).catch(function(e) {
-        showToast('採点エラー: ' + e.message);
-        document.getElementById('scoring-loading').style.display = 'none';
+
+
+function processFile(file) {
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    G.pendingImg=ev.target.result;
+    var img=document.getElementById('preview-img');
+    img.src=G.pendingImg;
+    document.getElementById('preview-container').style.display='block';
+    document.getElementById('upload-area').style.display='none';
+    document.getElementById('score-result').style.display='none';
+    img.onload=function(){
+      document.getElementById('scoring-loading').style.display='block';
+      analyzeAndScore(img).then(function(s){
+        G.pendingScore=s;
+        showScore(s);
+        document.getElementById('scoring-loading').style.display='none';
+      }).catch(function(e){
+        toast('採点エラー: '+e.message);
+        document.getElementById('scoring-loading').style.display='none';
       });
     };
   };
   reader.readAsDataURL(file);
 }
 
-function showScoreResult(scores) {
-  document.getElementById('score-result').style.display = 'block';
-  var circle = document.getElementById('score-circle');
-  circle.style.setProperty('--score', scores.total);
-  document.getElementById('score-number').textContent = scores.total;
-  var grade = getGrade(scores.total);
-  document.getElementById('score-grade').textContent = grade.label;
-  document.getElementById('score-grade').style.color = grade.color;
-  var items = [{'n':'明るさ','k':'brightness'},{'n':'彩度','k':'saturation'},{'n':'コントラスト','k':'contrast'},{'n':'構図','k':'composition'},{'n':'シャープ','k':'sharpness'}];
-  document.getElementById('score-breakdown').innerHTML = items.map(function(b) {
-    return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+scores[b.k]+'%"></div></div><div class="score-item-val">'+scores[b.k]+'点</div></div>';
+function showScore(s) {
+  document.getElementById('score-result').style.display='block';
+  document.getElementById('score-circle').style.setProperty('--score',s.total);
+  document.getElementById('score-number').textContent=s.total;
+  var gr=grade(s.total);
+  document.getElementById('score-grade').textContent=gr.label;
+  document.getElementById('score-grade').style.color=gr.color;
+  var items=[{n:'明るさ',k:'brightness'},{n:'彩度',k:'saturation'},{n:'コントラスト',k:'contrast'},{n:'構図',k:'composition'},{n:'シャープ',k:'sharpness'}];
+  document.getElementById('score-breakdown').innerHTML=items.map(function(b){
+    return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+s[b.k]+'%"></div></div><div class="score-item-val">'+s[b.k]+'点</div></div>';
   }).join('');
-  var adv = document.getElementById('advice-text');
-  adv.style.whiteSpace = 'pre-line';
-  adv.textContent = scores.advice;
+  var adv=document.getElementById('advice-text');
+  adv.style.whiteSpace='pre-line';adv.textContent=s.advice;
 }
 
-function savePhoto() {
-  if (!gPendingImg || !gPendingScore) return;
-  var btn = document.getElementById('btn-save');
-  btn.textContent = '保存中...';
-  btn.disabled = true;
+function resetUpload() {
+  G.pendingImg=null;G.pendingScore=null;
+  document.getElementById('preview-container').style.display='none';
+  document.getElementById('upload-area').style.display='block';
+  document.getElementById('score-result').style.display='none';
+  document.getElementById('file-input-library').value='';
+  document.getElementById('file-input-camera').value='';
+}
 
-  function doSave(imageUrl) {
-    sbFetch('/rest/v1/photos', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
-      body: JSON.stringify({
-        user_id: gUser.id,
-        image_url: imageUrl,
-        score: gPendingScore.total,
-        brightness: gPendingScore.brightness,
-        saturation: gPendingScore.saturation,
-        contrast: gPendingScore.contrast,
-        composition: gPendingScore.composition,
-        sharpness: gPendingScore.sharpness,
-        advice: gPendingScore.advice,
-        created_at: new Date().toISOString()
-      })
-    }).then(function() {
-      showToast('✅ 保存しました！');
-      gPendingImg = null; gPendingScore = null;
-      resetUpload();
-      document.getElementById('file-input-library').value = '';
-      document.getElementById('file-input-camera').value = '';
-      loadHomeStats();
-      switchPage('gallery');
-    }).catch(function(e) {
-      showToast('保存失敗: ' + e.message);
-    }).finally(function() {
-      btn.textContent = '💾 成長記録に保存する';
-      btn.disabled = false;
-    });
+function doSave() {
+  if(!G.pendingImg||!G.pendingScore)return;
+  var btn=document.getElementById('btn-save');
+  btn.textContent='保存中...';btn.disabled=true;
+
+  function save(url) {
+    sbPost('photos',{
+      user_id:G.user.id,image_url:url,
+      score:G.pendingScore.total,brightness:G.pendingScore.brightness,
+      saturation:G.pendingScore.saturation,contrast:G.pendingScore.contrast,
+      composition:G.pendingScore.composition,sharpness:G.pendingScore.sharpness,
+      advice:G.pendingScore.advice,created_at:new Date().toISOString()
+    }).then(function(){
+      toast('✅ 保存しました！');
+      G.pendingImg=null;G.pendingScore=null;
+      resetUpload();loadStats();goPage('gallery');
+    }).catch(function(e){toast('保存失敗: '+e.message);})
+    .finally(function(){btn.textContent='💾 成長記録に保存する';btn.disabled=false;});
   }
 
-  // Cloudinaryにアップロード
-  var blob = (function(dataURL) {
-    var arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1];
-    var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
-    while (n--) u8[n] = bstr.charCodeAt(n);
-    return new Blob([u8], {type: mime});
-  })(gPendingImg);
-
-  var fd = new FormData();
-  fd.append('file', blob);
-  fd.append('upload_preset', CL_PRESET);
-  fetch('https://api.cloudinary.com/v1_1/' + CL_CLOUD + '/image/upload', {method:'POST', body:fd})
-    .then(function(r) { return r.json(); })
-    .then(function(d) { doSave(d.secure_url || gPendingImg.substring(0, 200)); })
-    .catch(function() { doSave(gPendingImg.substring(0, 200)); });
+  var arr=G.pendingImg.split(','),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]),n=bstr.length,u8=new Uint8Array(n);
+  while(n--)u8[n]=bstr.charCodeAt(n);
+  var blob=new Blob([u8],{type:mime});
+  var fd=new FormData();fd.append('file',blob);fd.append('upload_preset',CP);
+  fetch('https://api.cloudinary.com/v1_1/'+CC+'/image/upload',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(d){save(d.secure_url||'');})
+    .catch(function(){save('');});
 }
 
-// ===== イベント設定（DOM読み込み後） =====
-document.addEventListener('DOMContentLoaded', function() {
-  // ログインボタン
-  document.getElementById('auth-btn').onclick = doLogin;
-  // アバター
-  document.getElementById('user-avatar').onclick = doLogout;
-  // ナビ
-  document.getElementById('nav-home').onclick = function() { switchPage('home'); };
-  document.getElementById('nav-upload').onclick = function() { switchPage('upload'); };
-  document.getElementById('nav-gallery').onclick = function() { switchPage('gallery'); };
-  // ソートタブ
-  document.getElementById('tab-latest').onclick = function() { switchSort('latest'); };
-  document.getElementById('tab-score').onclick = function() { switchSort('score'); };
-  // ファイル入力
-  document.getElementById('btn-library').onclick = function() { document.getElementById('file-input-library').click(); };
-  document.getElementById('btn-camera').onclick = function() { document.getElementById('file-input-camera').click(); };
-  document.getElementById('file-input-library').onchange = function(e) { if(e.target.files[0]) handleFile(e.target.files[0]); };
-  document.getElementById('file-input-camera').onchange = function(e) { if(e.target.files[0]) handleFile(e.target.files[0]); };
-  // プレビュー削除
-  document.getElementById('btn-remove-preview').onclick = function() {
-    gPendingImg = null; gPendingScore = null;
-    document.getElementById('preview-container').style.display = 'none';
-    document.getElementById('upload-area').style.display = 'block';
-    document.getElementById('score-result').style.display = 'none';
-    document.getElementById('file-input-library').value = '';
-    document.getElementById('file-input-camera').value = '';
-  };
-  // 保存ボタン
-  document.getElementById('btn-save').onclick = savePhoto;
-  // モーダル
-  document.getElementById('btn-modal-close').onclick = function() { document.getElementById('detail-modal').classList.remove('open'); };
-  document.getElementById('detail-modal').onclick = function(e) { if(e.target===this) this.classList.remove('open'); };
-  // ギャラリークリック（イベント委任）
-  document.getElementById('gallery-grid').onclick = function(e) {
-    var delBtn = e.target.closest('.delete-btn');
-    if (delBtn) { deletePhoto(delBtn.dataset.id); return; }
-    var item = e.target.closest('.gallery-item');
-    if (item) { openDetail(item.dataset.id); }
-  };
+// ===== ユーティリティ =====
+function grade(s) {
+  if(s>=90)return{label:'🌟 マスタークラス',color:'#FFD700'};
+  if(s>=80)return{label:'✨ エキスパート',color:'#c8a96e'};
+  if(s>=70)return{label:'📸 アドバンスド',color:'#5cb88a'};
+  if(s>=60)return{label:'🎯 インターミディエイト',color:'#7eb8d8'};
+  if(s>=50)return{label:'📷 アマチュア',color:'#a09890'};
+  return{label:'🌱 ビギナー',color:'#888'};
+}
 
-  // セッション復元
-  try {
-    var t = localStorage.getItem('sb_t');
-    var r = localStorage.getItem('sb_r');
-    if (t) {
-      gToken = t; gRefresh = r || '';
-      fetch(SB_URL + '/auth/v1/user', {
-        headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + t}
-      }).then(function(res) { return res.json(); }).then(function(user) {
-        if (user && user.id) {
-          gUser = user; gToken = t;
-          showMainApp();
-        }
-      }).catch(function() {});
-    }
-  } catch(e) {}
-});
+function fmtDate(iso) {
+  var d=new Date(iso);
+  return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+}
+
+function toast(msg) {
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
 </script>
 </body>
 </html>
