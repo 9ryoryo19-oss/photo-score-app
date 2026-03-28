@@ -721,6 +721,7 @@
       <div class="score-circle" id="score-circle"><div class="score-number" id="score-number">0</div></div>
       <div class="score-grade" id="score-grade">—</div>
       <div class="score-breakdown" id="score-breakdown"></div>
+      <div id="location-display" style="display:none;font-size:0.9rem;color:var(--accent);margin-bottom:12px;text-align:center;font-weight:500"></div>
       <div class="advice-section"><div class="advice-title">💡 アドバイス</div><div class="advice-text" id="advice-text"></div></div>
       <button class="btn-save" id="btn-save" style="margin-top:20px">💾 成長記録に保存する</button>
     </div>
@@ -767,7 +768,7 @@ var CP = "photo_score_app";
 // ===== グローバル変数 =====
 var G = {
   user: null, token: '', refresh: '',
-  pendingImg: null, pendingScore: null,
+  pendingImg: null, pendingScore: null, pendingLocation: null,
   sort: 'latest', gallery: {}, chart: null,
   isSignUp: false
 };
@@ -1023,7 +1024,7 @@ function openDetail(id) {
   var gr=grade(p.score);
   document.getElementById('modal-grade').textContent=gr.label;
   document.getElementById('modal-grade').style.color=gr.color;
-  document.getElementById('modal-date').textContent='📅 '+fmtDate(p.created_at);
+  document.getElementById('modal-date').textContent='📅 '+fmtDate(p.created_at)+(p.location_name?' 📍'+p.location_name:'');
   var adv=document.getElementById('modal-advice');
   adv.style.whiteSpace='pre-line';adv.textContent=p.advice||'';
   var items=[{n:'明るさ',v:p.brightness},{n:'彩度',v:p.saturation},{n:'コントラスト',v:p.contrast},{n:'構図',v:p.composition},{n:'シャープ',v:p.sharpness}];
@@ -1150,7 +1151,91 @@ async function analyzeAndScore(imageEl) {
   });
 }
 
+// EXIF GPS読み取り
+function readExifGPS(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var view = new DataView(e.target.result);
+        if (view.getUint16(0) !== 0xFFD8) { resolve(null); return; }
+        var offset = 2, len = view.byteLength;
+        while (offset < len) {
+          if (view.getUint16(offset) === 0xFFE1) {
+            var exifLen = view.getUint16(offset + 2);
+            var exif = new DataView(e.target.result, offset + 4, exifLen - 2);
+            var exifStr = '';
+            for (var i = 0; i < 4; i++) exifStr += String.fromCharCode(exif.getUint8(i));
+            if (exifStr !== 'Exif') { resolve(null); return; }
+            var le = exif.getUint16(6) === 0x4949;
+            var ifdOffset = exif.getUint32(10, le) + 6;
+            var entries = exif.getUint16(ifdOffset, le);
+            var gpsOffset = null;
+            for (var j = 0; j < entries; j++) {
+              var tag = exif.getUint16(ifdOffset + 2 + j * 12, le);
+              if (tag === 0x8825) { gpsOffset = exif.getUint32(ifdOffset + 2 + j * 12 + 8, le) + 6; break; }
+            }
+            if (!gpsOffset) { resolve(null); return; }
+            var gpsEntries = exif.getUint16(gpsOffset, le);
+            var lat = null, lon = null, latRef = 'N', lonRef = 'E';
+            for (var k = 0; k < gpsEntries; k++) {
+              var gpsTag = exif.getUint16(gpsOffset + 2 + k * 12, le);
+              var gpsValOffset = gpsOffset + 2 + k * 12 + 8;
+              if (gpsTag === 1) latRef = String.fromCharCode(exif.getUint8(gpsValOffset));
+              if (gpsTag === 3) lonRef = String.fromCharCode(exif.getUint8(gpsValOffset));
+              if (gpsTag === 2 || gpsTag === 4) {
+                var voff = exif.getUint32(gpsValOffset, le) + 6;
+                var d = exif.getUint32(voff, le) / exif.getUint32(voff + 4, le);
+                var m = exif.getUint32(voff + 8, le) / exif.getUint32(voff + 12, le);
+                var s2 = exif.getUint32(voff + 16, le) / exif.getUint32(voff + 20, le);
+                var deg = d + m / 60 + s2 / 3600;
+                if (gpsTag === 2) lat = deg;
+                else lon = deg;
+              }
+            }
+            if (lat !== null && lon !== null) {
+              if (latRef === 'S') lat = -lat;
+              if (lonRef === 'W') lon = -lon;
+              resolve({lat: lat, lon: lon});
+            } else { resolve(null); }
+            return;
+          }
+          offset += 2 + view.getUint16(offset + 2);
+        }
+        resolve(null);
+      } catch(e) { resolve(null); }
+    };
+    reader.readAsArrayBuffer(file.slice(0, 65536));
+  });
+}
+
+// 緯度経度から地名を取得
+function getLocationName(lat, lon) {
+  return fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=ja', {
+    headers: { 'User-Agent': 'PhotoGrow/1.0' }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d || !d.address) return null;
+    var a = d.address;
+    return a.city || a.town || a.village || a.county || a.state || d.display_name || null;
+  }).catch(function() { return null; });
+}
+
 function processFile(file) {
+  G.pendingLocation = null;
+  // GPS取得を先に試みる
+  readExifGPS(file).then(function(gps) {
+    if (gps) {
+      return getLocationName(gps.lat, gps.lon).then(function(name) {
+        if (name) {
+          G.pendingLocation = name;
+          var locEl = document.getElementById('location-display');
+          if (locEl) { locEl.textContent = '📍 ' + name; locEl.style.display = 'block'; }
+        }
+      });
+    }
+  }).catch(function() {});
+
   var reader=new FileReader();
   reader.onload=function(ev){
     G.pendingImg=ev.target.result;
@@ -1190,10 +1275,12 @@ function showScore(s) {
 }
 
 function resetUpload() {
-  G.pendingImg=null;G.pendingScore=null;
+  G.pendingImg=null;G.pendingScore=null;G.pendingLocation=null;
   document.getElementById('preview-container').style.display='none';
   document.getElementById('upload-area').style.display='block';
   document.getElementById('score-result').style.display='none';
+  var locEl=document.getElementById('location-display');
+  if(locEl){locEl.style.display='none';locEl.textContent='';}
   document.getElementById('file-input-library').value='';
   document.getElementById('file-input-camera').value='';
 }
@@ -1209,7 +1296,8 @@ function doSave() {
       score:G.pendingScore.total,brightness:G.pendingScore.brightness,
       saturation:G.pendingScore.saturation,contrast:G.pendingScore.contrast,
       composition:G.pendingScore.composition,sharpness:G.pendingScore.sharpness,
-      advice:G.pendingScore.advice,created_at:new Date().toISOString()
+      advice:G.pendingScore.advice,location_name:G.pendingLocation||null,
+      created_at:new Date().toISOString()
     }).then(function(){
       toast('✅ 保存しました！');
       G.pendingImg=null;G.pendingScore=null;
