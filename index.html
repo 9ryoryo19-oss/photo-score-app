@@ -757,10 +757,10 @@
 
 <script>
 // ===== 設定 =====
-var SB =  + SB_URL + ;
-var SK =  + SB_KEY + ;
-var CC =  + CL_CLOUD + ;
-var CP =  + CL_PRESET + ;
+var SB = "https://mhoxmehluacprsmepmxu.supabase.co";
+var SK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY";
+var CC = "duu4fajsb";
+var CP = "photo_score_app";
 
 // ===== グローバル変数 =====
 var G = {
@@ -980,7 +980,7 @@ function loadGallery() {
       data.forEach(function(p){G.gallery[p.id]=p;});
       document.getElementById('gallery-grid').innerHTML=data.map(function(p){
         return '<div class="gallery-item" data-id="'+p.id+'">'+
-          '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background='var(--bg3)';this.style.minHeight='120px'">'+
+          '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';this.style.minHeight=\'120px\'">'+
           '<div class="gallery-info">'+
           '<div style="display:flex;align-items:center;justify-content:space-between">'+
           '<div class="gallery-score">'+p.score+'点</div>'+
@@ -1017,7 +1017,6 @@ function doDelete(id) {
 }
 
 // ===== 採点 =====
-// ===== SCORING ENGINE =====
 async function analyzeAndScore(imageEl) {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
@@ -1049,30 +1048,24 @@ async function analyzeAndScore(imageEl) {
       contrastData.push((r + g + b) / 3);
     }
 
-    // 明るさスコア（0.35〜0.65が理想）
     const avgBrightness = brightnessValues.reduce((a,b)=>a+b,0) / pixels;
     const brightScore = Math.round(100 - Math.abs(avgBrightness - 0.5) * 160);
 
-    // 彩度スコア
     const avgSat = satValues.reduce((a,b)=>a+b,0) / pixels;
     const satScore = Math.round(Math.min(avgSat * 180, 100));
 
-    // コントラストスコア
     const meanContrast = contrastData.reduce((a,b)=>a+b,0) / pixels;
     const variance = contrastData.reduce((a,b)=>a + Math.pow(b-meanContrast, 2), 0) / pixels;
     const contrastScore = Math.round(Math.min(Math.sqrt(variance) / 60 * 100, 100));
 
-    // 構図スコア（アスペクト比による）
     const aspect = imageEl.naturalWidth / imageEl.naturalHeight;
     const idealAspects = [1, 4/3, 3/2, 16/9];
     const aspectDiff = Math.min(...idealAspects.map(a => Math.abs(aspect - a)));
     const compositionScore = Math.round(Math.max(100 - aspectDiff * 80, 40));
 
-    // シャープネス（エッジ検出の簡易版）
     let edgeSum = 0;
     for (let y = 1; y < canvas.height - 1; y++) {
       for (let x = 1; x < canvas.width - 1; x++) {
-        const idx = (y * canvas.width + x) * 4;
         const curr = contrastData[y * canvas.width + x];
         const right = contrastData[y * canvas.width + x + 1];
         const down = contrastData[(y+1) * canvas.width + x];
@@ -1082,7 +1075,6 @@ async function analyzeAndScore(imageEl) {
     const avgEdge = edgeSum / (canvas.width * canvas.height);
     const sharpnessScore = Math.round(Math.min(avgEdge / 15 * 100, 100));
 
-    // 総合スコア
     const total = Math.round(
       brightScore * 0.25 +
       satScore * 0.20 +
@@ -1100,53 +1092,39 @@ async function analyzeAndScore(imageEl) {
       sharpness: Math.max(20, sharpnessScore),
     };
 
-    // アドバイス生成（厳しく詳細に）
     const advices = [];
 
-    // 明るさ
     if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。暗い写真は後処理でも限界があります。');
     else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。カメラのISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。風景では三脚を使った長秒露光も有効です。');
     else if (scores.brightness > 88) advices.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。空の白飛びは後処理では回復不可能です。');
     else if (scores.brightness > 75) advices.push('【明るさ：やや明るい】少し露出オーバーです。-0.3〜-0.7段絞ることで、空や雲のディテールを保持できます。');
     else advices.push('【明るさ：良好】露出は適切です。次は光の方向性（順光・逆光・サイド光）を意識すると、さらに立体感のある写真になります。');
 
-    // 彩度
     if (scores.saturation < 25) advices.push('【彩度：非常に低い】色味がほぼない状態です。モノクロ写真として仕上げるか、晴天の青空や夕焼けを背景に撮影しましょう。曇りの日は意図的にモノクロ変換が効果的です。');
     else if (scores.saturation < 45) advices.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選ぶか、編集で彩度を+20〜30上げてみましょう。ただし不自然な過彩度は避けること。');
     else if (scores.saturation > 80) advices.push('【彩度：鮮やか】色彩が豊かで視線を引きます。ただし彩度が高すぎると不自然に見えることも。プリントや画面環境によって見え方が変わるので確認を。');
     else advices.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを被写体の色温度に合わせると、さらに自然な発色になります。');
 
-    // コントラスト
     if (scores.contrast < 30) advices.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。RAW撮影してトーンカーブで暗部を下げ明部を上げるS字カーブをかけましょう。または偏光フィルターを使って反射を抑えると効果的です。');
     else if (scores.contrast < 50) advices.push('【コントラスト：不足】明暗差が少なく、立体感に欠けます。被写体に対して横から光を当てるサイド光を意識し、影を活かした構図にしましょう。');
     else if (scores.contrast > 80) advices.push('【コントラスト：強い】ダイナミックな仕上がりです。ただし暗部が潰れていないか確認を。HDR合成や段階露出で暗部を補うとバランスが取れます。');
     else advices.push('【コントラスト：良好】明暗のバランスが取れています。被写体の質感を出すには、光の角度を変えてみることをおすすめします。');
 
-    // シャープネス
     if (scores.sharpness < 30) advices.push('【シャープネス：深刻】明らかにブレています。三脚必須です。またシャッタースピードを被写体の動きに合わせて設定し（動体なら1/500秒以上）、セルフタイマーやリモコンでシャッターを切りましょう。');
     else if (scores.sharpness < 50) advices.push('【シャープネス：不足】ピントが甘いか手ブレがあります。一眼カメラではAFポイントを主題に合わせ、iPhoneでは画面タップでピント合わせを確認してください。');
     else if (scores.sharpness > 75) advices.push('【シャープネス：優秀】くっきりと解像しています。主題を際立たせるために、前景と背景のボケ（深度）も意識してみましょう。');
     else advices.push('【シャープネス：良好】ピントは合っています。次は被写界深度（どこからどこまでピントを合わせるか）をコントロールすることを意識しましょう。');
 
-    // 総合評価
     if (scores.total >= 85) advices.push('【総合】プロレベルに近い仕上がりです。光・構図・色の三要素が高水準で揃っています。SNSや作品展示にも十分通用します。');
     else if (scores.total >= 70) advices.push('【総合】上級アマチュアレベルです。あと一歩の完成度。弱点の項目に集中して改善すれば、大きくスコアが上がります。');
     else if (scores.total >= 55) advices.push('【総合】中級者レベルです。基本は押さえられていますが、光の読み方と構図の意図が弱い。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
     else if (scores.total >= 40) advices.push('【総合】初級者レベルです。今は量より質を意識して。1回の外出で100枚撮るより、10枚を丁寧に撮る練習をしてください。三分割法を意識した構図から始めましょう。');
     else advices.push('【総合】基礎から見直しが必要です。まずは晴れた日の昼間に、明るく・ブレない写真を撮ることだけを目標にしてください。設定はフルオートでOKです。');
 
-    scores.advice = advices.join('
-
-');
+    scores.advice = advices.join('\n\n');
     resolve(scores);
   });
 }
-
-
-
-
-
-
 
 function processFile(file) {
   var reader=new FileReader();
