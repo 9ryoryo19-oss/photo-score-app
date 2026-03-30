@@ -7,8 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-
-
     :root {
       --bg: #0a0a0f;
       --bg2: #111118;
@@ -610,7 +608,7 @@
 
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Rank badge */
+    /* Rank banner */
     .rank-banner {
       background: linear-gradient(135deg, #1a1530, #0a0a0f);
       border: 1px solid var(--gold);
@@ -667,13 +665,9 @@
       font-weight: 600;
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-  
-  
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pgDash{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-250}}
-@keyframes pgRotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(180deg)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pgDash{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-250}}
+    @keyframes pgRotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(180deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -803,7 +797,7 @@
   <div class="modal-content">
     <div class="modal-handle"></div>
     <button class="modal-close" id="btn-modal-close">✕</button>
-    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';">
+    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background='var(--bg3)';">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent)" id="modal-score"></div>
       <div><div style="font-weight:600" id="modal-grade"></div><div style="font-size:0.8rem;color:var(--text2)" id="modal-date"></div></div>
@@ -843,6 +837,7 @@ function sbDelete(path) {
 // ===== ユーティリティ =====
 function toast(msg) {
   var t=document.getElementById('toast');
+  if(!t) return;
   t.textContent=msg; t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2800);
 }
@@ -860,6 +855,7 @@ function grade(s) {
 }
 function showErr(msg) {
   var e=document.getElementById('auth-error');
+  if(!e) return;
   e.textContent=msg;
   e.style.cssText='display:block;background:rgba(224,112,112,0.15);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
 }
@@ -935,6 +931,7 @@ function goPage(name) {
 
 // ===== ホーム =====
 function loadStats() {
+  if(!gUser) return;
   sbGet('photos?select=score,created_at&user_id=eq.'+gUser.id+'&order=created_at.asc').then(function(data){
     if(!Array.isArray(data))return;
     var n=data.length;
@@ -990,6 +987,7 @@ function setSort(s) {
 }
 
 function loadGallery() {
+  if(!gUser) return;
   document.getElementById('gallery-loading').style.display='block';
   document.getElementById('gallery-grid').innerHTML='';
   document.getElementById('gallery-empty').style.display='none';
@@ -1115,41 +1113,38 @@ function analyzeAndScore(imageEl) {
 
     var advices = [];
 
-    if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。暗い写真は後処理でも限界があります。');
-    else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。カメラのISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。風景では三脚を使った長秒露光も有効です。');
-    else if (scores.brightness > 88) advices.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。空の白飛びは後処理では回復不可能です。');
+    if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。');
+    else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。ISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。');
+    else if (scores.brightness > 88) advices.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。');
     else if (scores.brightness > 75) advices.push('【明るさ：やや明るい】少し露出オーバーです。-0.3〜-0.7段絞ることで、空や雲のディテールを保持できます。');
-    else advices.push('【明るさ：良好】露出は適切です。次は光の方向性（順光・逆光・サイド光）を意識すると、さらに立体感のある写真になります。');
+    else advices.push('【明るさ：良好】露出は適切です。光の方向性（順光・逆光・サイド光）を意識すると立体感が増します。');
 
-    if (scores.saturation < 25) advices.push('【彩度：非常に低い】色味がほぼない状態です。モノクロ写真として仕上げるか、晴天の青空や夕焼けを背景に撮影しましょう。曇りの日は意図的にモノクロ変換が効果的です。');
-    else if (scores.saturation < 45) advices.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選ぶか、編集で彩度を+20〜30上げてみましょう。ただし不自然な過彩度は避けること。');
-    else if (scores.saturation > 80) advices.push('【彩度：鮮やか】色彩が豊かで視線を引きます。ただし彩度が高すぎると不自然に見えることも。プリントや画面環境によって見え方が変わるので確認を。');
-    else advices.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを被写体の色温度に合わせると、さらに自然な発色になります。');
+    if (scores.saturation < 25) advices.push('【彩度：非常に低い】色味がほぼない状態です。晴天の青空や夕焼けを背景に撮影しましょう。');
+    else if (scores.saturation < 45) advices.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選びましょう。');
+    else if (scores.saturation > 80) advices.push('【彩度：鮮やか】色彩が豊かで視線を引きます。不自然な過彩度にならないよう注意を。');
+    else advices.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを合わせるとさらに自然な発色になります。');
 
-    if (scores.contrast < 30) advices.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。RAW撮影してトーンカーブで暗部を下げ明部を上げるS字カーブをかけましょう。または偏光フィルターを使って反射を抑えると効果的です。');
-    else if (scores.contrast < 50) advices.push('【コントラスト：不足】明暗差が少なく、立体感に欠けます。被写体に対して横から光を当てるサイド光を意識し、影を活かした構図にしましょう。');
-    else if (scores.contrast > 80) advices.push('【コントラスト：強い】ダイナミックな仕上がりです。ただし暗部が潰れていないか確認を。HDR合成や段階露出で暗部を補うとバランスが取れます。');
-    else advices.push('【コントラスト：良好】明暗のバランスが取れています。被写体の質感を出すには、光の角度を変えてみることをおすすめします。');
+    if (scores.contrast < 30) advices.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。トーンカーブでS字カーブをかけましょう。');
+    else if (scores.contrast < 50) advices.push('【コントラスト：不足】明暗差が少なく、立体感に欠けます。サイド光を意識した構図にしましょう。');
+    else if (scores.contrast > 80) advices.push('【コントラスト：強い】ダイナミックな仕上がりです。暗部が潰れていないか確認を。');
+    else advices.push('【コントラスト：良好】明暗のバランスが取れています。光の角度を変えて質感を出してみましょう。');
 
-    if (scores.sharpness < 30) advices.push('【シャープネス：深刻】明らかにブレています。三脚必須です。またシャッタースピードを被写体の動きに合わせて設定し（動体なら1/500秒以上）、セルフタイマーやリモコンでシャッターを切りましょう。');
-    else if (scores.sharpness < 50) advices.push('【シャープネス：不足】ピントが甘いか手ブレがあります。一眼カメラではAFポイントを主題に合わせ、iPhoneでは画面タップでピント合わせを確認してください。');
-    else if (scores.sharpness > 75) advices.push('【シャープネス：優秀】くっきりと解像しています。主題を際立たせるために、前景と背景のボケ（深度）も意識してみましょう。');
-    else advices.push('【シャープネス：良好】ピントは合っています。次は被写界深度（どこからどこまでピントを合わせるか）をコントロールすることを意識しましょう。');
+    if (scores.sharpness < 30) advices.push('【シャープネス：深刻】明らかにブレています。三脚必須です。セルフタイマーでシャッターを切りましょう。');
+    else if (scores.sharpness < 50) advices.push('【シャープネス：不足】ピントが甘いか手ブレがあります。iPhoneでは画面タップでピント合わせを確認してください。');
+    else if (scores.sharpness > 75) advices.push('【シャープネス：優秀】くっきりと解像しています。前景と背景のボケも意識してみましょう。');
+    else advices.push('【シャープネス：良好】ピントは合っています。被写界深度のコントロールを意識しましょう。');
 
-    if (scores.total >= 85) advices.push('【総合】プロレベルに近い仕上がりです。光・構図・色の三要素が高水準で揃っています。SNSや作品展示にも十分通用します。');
-    else if (scores.total >= 70) advices.push('【総合】上級アマチュアレベルです。あと一歩の完成度。弱点の項目に集中して改善すれば、大きくスコアが上がります。');
-    else if (scores.total >= 55) advices.push('【総合】中級者レベルです。基本は押さえられていますが、光の読み方と構図の意図が弱い。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
-    else if (scores.total >= 40) advices.push('【総合】初級者レベルです。今は量より質を意識して。1回の外出で100枚撮るより、10枚を丁寧に撮る練習をしてください。三分割法を意識した構図から始めましょう。');
-    else advices.push('【総合】基礎から見直しが必要です。まずは晴れた日の昼間に、明るく・ブレない写真を撮ることだけを目標にしてください。設定はフルオートでOKです。');
+    if (scores.total >= 85) advices.push('【総合】プロレベルに近い仕上がりです。SNSや作品展示にも十分通用します。');
+    else if (scores.total >= 70) advices.push('【総合】上級アマチュアレベルです。弱点の項目を集中して改善すれば、大きくスコアが上がります。');
+    else if (scores.total >= 55) advices.push('【総合】中級者レベルです。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
+    else if (scores.total >= 40) advices.push('【総合】初級者レベルです。三分割法を意識した構図から始めましょう。');
+    else advices.push('【総合】基礎から見直しが必要です。まずは明るく・ブレない写真を撮ることを目標にしてください。');
 
     scores.advice = advices.join('\n\n');
     resolve(scores);
   });
 }
 
-
-
-// ===== GPS =====
 // EXIF GPS読み取り
 function readExifGPS(file) {
   return new Promise(function(resolve) {
@@ -1219,8 +1214,6 @@ function getLocationName(lat, lon) {
     return a.city || a.town || a.village || a.county || a.state || d.display_name || null;
   }).catch(function() { return null; });
 }
-
-
 
 function processFile(file) {
   gPendingLoc=null;
@@ -1307,7 +1300,6 @@ function doSave() {
     .then(function(r){return r.json();}).then(function(d){save(d.secure_url||'');}).catch(function(){save('');});
 }
 
-// ===== 既存アドバイス更新 =====
 function makeAdvice(b,s,c,comp,sh,total) {
   var a=[];
   if(b<35)a.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）を狙うか、露出補正を+1〜2段上げてください。');
@@ -1336,6 +1328,7 @@ function makeAdvice(b,s,c,comp,sh,total) {
 }
 
 function updateOldAdvice() {
+  if(!gUser) return;
   sbGet('photos?select=id,brightness,saturation,contrast,composition,sharpness,score,advice&user_id=eq.'+gUser.id)
     .then(function(data){
       if(!Array.isArray(data))return;
@@ -1378,7 +1371,6 @@ window.onload = function() {
     var t=localStorage.getItem('sb_t');
     if(t) {
       gToken=t; gRefresh=localStorage.getItem('sb_r')||'';
-      // ローディング表示
       document.getElementById('auth-screen').style.display='none';
       var ls=document.createElement('div');
       ls.id='loading-screen';
@@ -1391,7 +1383,7 @@ window.onload = function() {
         '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'+
         '<svg viewBox="0 0 40 40" style="width:40px;height:40px"><rect x="4" y="12" width="32" height="22" rx="4" fill="#c8a96e" opacity="0.15" stroke="#c8a96e" stroke-width="1.5"/><circle cx="20" cy="23" r="6" fill="none" stroke="#c8a96e" stroke-width="1.5"/><path d="M14 12 L16 8 H24 L26 12" fill="#c8a96e" opacity="0.8"/><circle cx="30" cy="16" r="2" fill="#c8a96e"/></svg>'+
         '</div></div>'+
-        '<div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#c8a96e;letter-spacing:2px;margin-bottom:6px">PhotoGrow</div>'+
+        '<div style="font-family:\'Playfair Display\',serif;font-size:1.6rem;color:#c8a96e;letter-spacing:2px;margin-bottom:6px">PhotoGrow</div>'+
         '<div style="font-size:0.75rem;color:#5a5060;letter-spacing:3px;text-transform:uppercase">Loading...</div>';
       document.body.appendChild(ls);
       fetch(SB+'/auth/v1/user',{headers:{apikey:SK,'Authorization':'Bearer '+t}})
