@@ -1038,65 +1038,65 @@ function doDelete(id) {
 }
 
 // ===== 採点エンジン =====
-async function analyzeAndScore(imageEl) {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const MAX = 200;
-    const scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
+function analyzeAndScore(imageEl) {
+  return new Promise(function(resolve) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var MAX = 200;
+    var scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
     canvas.width = imageEl.naturalWidth * scale;
     canvas.height = imageEl.naturalHeight * scale;
     ctx.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
 
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    const pixels = data.length / 4;
+    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var pixels = data.length / 4;
 
-    let rSum=0, gSum=0, bSum=0;
-    let brightnessValues = [];
-    let satValues = [];
-    let contrastData = [];
+    var rSum=0, gSum=0, bSum=0;
+    var brightnessValues = [];
+    var satValues = [];
+    var contrastData = [];
 
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i+1], b = data[i+2];
+      var r = data[i], g = data[i+1], b = data[i+2];
       rSum += r; gSum += g; bSum += b;
 
-      const max = Math.max(r,g,b), min = Math.min(r,g,b);
-      const brightness = (max + min) / 2 / 255;
+      var max = Math.max(r,g,b), min = Math.min(r,g,b);
+      var brightness = (max + min) / 2 / 255;
       brightnessValues.push(brightness);
 
-      const sat = max === 0 ? 0 : (max - min) / max;
+      var sat = max === 0 ? 0 : (max - min) / max;
       satValues.push(sat);
       contrastData.push((r + g + b) / 3);
     }
 
-    const avgBrightness = brightnessValues.reduce((a,b)=>a+b,0) / pixels;
-    const brightScore = Math.round(100 - Math.abs(avgBrightness - 0.5) * 160);
+    var avgBrightness = brightnessValues.reduce(function(a,b){return a+b;},0) / pixels;
+    var brightScore = Math.round(100 - Math.abs(avgBrightness - 0.5) * 160);
 
-    const avgSat = satValues.reduce((a,b)=>a+b,0) / pixels;
-    const satScore = Math.round(Math.min(avgSat * 180, 100));
+    var avgSat = satValues.reduce(function(a,b){return a+b;},0) / pixels;
+    var satScore = Math.round(Math.min(avgSat * 180, 100));
 
-    const meanContrast = contrastData.reduce((a,b)=>a+b,0) / pixels;
-    const variance = contrastData.reduce((a,b)=>a + Math.pow(b-meanContrast, 2), 0) / pixels;
-    const contrastScore = Math.round(Math.min(Math.sqrt(variance) / 60 * 100, 100));
+    var meanContrast = contrastData.reduce(function(a,b){return a+b;},0) / pixels;
+    var variance = contrastData.reduce(function(a,b){return a + Math.pow(b-meanContrast, 2);}, 0) / pixels;
+    var contrastScore = Math.round(Math.min(Math.sqrt(variance) / 60 * 100, 100));
 
-    const aspect = imageEl.naturalWidth / imageEl.naturalHeight;
-    const idealAspects = [1, 4/3, 3/2, 16/9];
-    const aspectDiff = Math.min(...idealAspects.map(a => Math.abs(aspect - a)));
-    const compositionScore = Math.round(Math.max(100 - aspectDiff * 80, 40));
+    var aspect = imageEl.naturalWidth / imageEl.naturalHeight;
+    var idealAspects = [1, 4/3, 3/2, 16/9];
+    var aspectDiff = Math.min.apply(null, idealAspects.map(function(a){return Math.abs(aspect - a);}));
+    var compositionScore = Math.round(Math.max(100 - aspectDiff * 80, 40));
 
-    let edgeSum = 0;
+    var edgeSum = 0;
     for (let y = 1; y < canvas.height - 1; y++) {
       for (let x = 1; x < canvas.width - 1; x++) {
-        const curr = contrastData[y * canvas.width + x];
-        const right = contrastData[y * canvas.width + x + 1];
-        const down = contrastData[(y+1) * canvas.width + x];
+        var curr = contrastData[y * canvas.width + x];
+        var right = contrastData[y * canvas.width + x + 1];
+        var down = contrastData[(y+1) * canvas.width + x];
         edgeSum += Math.abs(curr - right) + Math.abs(curr - down);
       }
     }
-    const avgEdge = edgeSum / (canvas.width * canvas.height);
-    const sharpnessScore = Math.round(Math.min(avgEdge / 15 * 100, 100));
+    var avgEdge = edgeSum / (canvas.width * canvas.height);
+    var sharpnessScore = Math.round(Math.min(avgEdge / 15 * 100, 100));
 
-    const total = Math.round(
+    var total = Math.round(
       brightScore * 0.25 +
       satScore * 0.20 +
       contrastScore * 0.20 +
@@ -1104,7 +1104,7 @@ async function analyzeAndScore(imageEl) {
       sharpnessScore * 0.15
     );
 
-    const scores = {
+    var scores = {
       total: Math.max(20, Math.min(total, 100)),
       brightness: Math.max(20, brightScore),
       saturation: Math.max(20, satScore),
@@ -1113,7 +1113,7 @@ async function analyzeAndScore(imageEl) {
       sharpness: Math.max(20, sharpnessScore),
     };
 
-    const advices = [];
+    var advices = [];
 
     if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。暗い写真は後処理でも限界があります。');
     else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。カメラのISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。風景では三脚を使った長秒露光も有効です。');
