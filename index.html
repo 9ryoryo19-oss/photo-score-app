@@ -803,7 +803,7 @@
   <div class="modal-content">
     <div class="modal-handle"></div>
     <button class="modal-close" id="btn-modal-close">✕</button>
-    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background='var(--bg3)'">
+    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent)" id="modal-score"></div>
       <div><div style="font-weight:600" id="modal-grade"></div><div style="font-size:0.8rem;color:var(--text2)" id="modal-date"></div></div>
@@ -816,10 +816,10 @@
 
 <script>
 // ===== 設定 =====
-var SB= + SB + ;
-var SK= + SK + ;
-var CC= + CC + ;
-var CP= + CP + ;
+var SB = 'https://mhoxmehluacprsmepmxu.supabase.co';
+var SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
+var CC = 'dlyq6q8v0';
+var CP = 'photogrow';
 
 // ===== 状態 =====
 var gUser=null, gToken='', gRefresh='';
@@ -1001,7 +1001,7 @@ function loadGallery() {
     data.forEach(function(p){gGallery[p.id]=p;});
     document.getElementById('gallery-grid').innerHTML=data.map(function(p){
       return '<div class="gallery-item" data-id="'+p.id+'">'+
-        '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background='var(--bg3)';this.style.minHeight='120px'">'+
+        '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';this.style.minHeight=\'120px\';">'+
         '<div class="gallery-info">'+
         '<div style="display:flex;align-items:center;justify-content:space-between">'+
         '<div class="gallery-score">'+p.score+'点</div>'+
@@ -1332,9 +1332,7 @@ function makeAdvice(b,s,c,comp,sh,total) {
   else if(total>=55)a.push('【総合】中級者レベルです。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
   else if(total>=40)a.push('【総合】初級者レベルです。三分割法を意識した構図から始めましょう。');
   else a.push('【総合】基礎から見直しが必要です。まずは明るく・ブレない写真を撮ることを目標にしてください。');
-  return a.join('
-
-');
+  return a.join('\n\n');
 }
 
 function updateOldAdvice() {
