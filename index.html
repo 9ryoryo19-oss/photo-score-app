@@ -975,19 +975,29 @@ var CP = 'photogrow';
 var gUser=null, gToken='', gRefresh='';
 var gPendingImg=null, gPendingScore=null, gPendingLoc=null;
 var gSort='latest', gGallery={}, gChart=null, gIsSignUp=false;
-var gAiModel=null;
+var gAiModel=null, gAiLoading=false;
 var gSelectMode=false, gSelectedIds=new Set();
 
-// ===== AIモデルのロード =====
+// ===== AIモデルのロード (高速化: 事前ロード & 軽量モデル) =====
 async function loadAiModel() {
   if (gAiModel) return gAiModel;
+  if (gAiLoading) return new Promise(resolve => {
+    const check = setInterval(() => {
+      if (gAiModel) { clearInterval(check); resolve(gAiModel); }
+    }, 100);
+  });
+
+  gAiLoading = true;
   try {
-    gAiModel = await mobilenet.load();
-    console.log('AI Model Loaded');
+    // MobileNet v2 (Alpha 0.50) を使用して高速化
+    gAiModel = await mobilenet.load({version: 2, alpha: 0.50});
+    console.log('AI Model (v2 0.50) Loaded');
     return gAiModel;
   } catch (e) {
     console.error('AI Model Load Error:', e);
     return null;
+  } finally {
+    gAiLoading = false;
   }
 }
 
@@ -1087,7 +1097,7 @@ function showApp() {
   var em=gUser&&gUser.email?gUser.email:'';
   document.getElementById('user-avatar').textContent=em?em[0].toUpperCase():'?';
   loadStats(); loadGallery(); updateOldAdvice();
-  loadAiModel(); // バックグラウンドでAIモデルをロード
+  loadAiModel(); // バックグラウンドでAIモデルを事前ロード
 }
 
 // ===== ナビ =====
@@ -1320,75 +1330,95 @@ function doDelete(id) {
   }).catch(function(){toast('削除に失敗しました');});
 }
 
-// ===== プロ仕様 AI 採点エンジン =====
+// ===== プロ仕様 AI 採点エンジン (高速化対応版) =====
 async function analyzeAndScore(imageEl) {
   document.getElementById('loading-text').textContent = 'AIが写真を「見て」います...';
+  
+  // 高速化: 事前ロード済みのモデルを使用
   const model = await loadAiModel();
   
+  // 高速化: 解析用の軽量キャンバス作成
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const MAX = 224; // MobileNetの標準入力サイズに合わせて最適化
+  const scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
+  canvas.width = imageEl.naturalWidth * scale;
+  canvas.height = imageEl.naturalHeight * scale;
+  ctx.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
+
+  // AIによる物体認識 (非同期で実行)
   let predictions = [];
   if (model) {
-    predictions = await model.classify(imageEl);
+    predictions = await model.classify(canvas);
   }
   const mainSubject = predictions.length > 0 ? predictions[0].className.split(',')[0] : '風景';
 
   document.getElementById('loading-text').textContent = 'プロの視点で解析中...';
   
   return new Promise(function(resolve) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    var MAX = 300;
-    var scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
-    canvas.width = imageEl.naturalWidth * scale;
-    canvas.height = imageEl.naturalHeight * scale;
-    ctx.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
+    // 高速化: ピクセルデータの取得と解析
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const pixels = data.length / 4;
 
-    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    var pixels = data.length / 4;
-
-    var brightnessValues = [];
-    var satValues = [];
-    var contrastData = [];
+    let totalBrightness = 0;
+    let totalSat = 0;
+    let totalContrastVal = 0;
+    const contrastData = new Uint8Array(pixels);
 
     for (let i = 0; i < data.length; i += 4) {
-      var r = data[i], g = data[i+1], b = data[i+2];
-      var max = Math.max(r,g,b), min = Math.min(r,g,b);
-      var brightness = (max + min) / 2 / 255;
-      brightnessValues.push(brightness);
-      var sat = max === 0 ? 0 : (max - min) / max;
-      satValues.push(sat);
-      contrastData.push((r + g + b) / 3);
+      const r = data[i], g = data[i+1], b = data[i+2];
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      
+      // 明るさ (Luminance)
+      const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      totalBrightness += lum;
+      
+      // 彩度
+      const sat = max === 0 ? 0 : (max - min) / max;
+      totalSat += sat;
+      
+      // コントラスト用グレースケール
+      const gray = (r + g + b) / 3;
+      contrastData[i/4] = gray;
+      totalContrastVal += gray;
     }
 
-    var avgBrightness = brightnessValues.reduce((a,b)=>a+b,0) / pixels;
-    var brightScore = Math.round(100 - Math.abs(avgBrightness - 0.45) * 200);
+    const avgBrightness = totalBrightness / pixels;
+    const brightScore = Math.round(100 - Math.abs(avgBrightness - 0.45) * 200);
 
-    var avgSat = satValues.reduce((a,b)=>a+b,0) / pixels;
-    var satScore = Math.round(Math.min(avgSat * 150, 100));
+    const avgSat = totalSat / pixels;
+    const satScore = Math.round(Math.min(avgSat * 150, 100));
 
-    var meanContrast = contrastData.reduce((a,b)=>a+b,0) / pixels;
-    var variance = contrastData.reduce((a,b)=>a + Math.pow(b-meanContrast, 2), 0) / pixels;
-    var contrastScore = Math.round(Math.min(Math.sqrt(variance) / 55 * 100, 100));
+    const meanContrast = totalContrastVal / pixels;
+    let varianceSum = 0;
+    for(let i=0; i<pixels; i++) {
+      varianceSum += Math.pow(contrastData[i] - meanContrast, 2);
+    }
+    const variance = varianceSum / pixels;
+    const contrastScore = Math.round(Math.min(Math.sqrt(variance) / 55 * 100, 100));
 
-    var aspect = imageEl.naturalWidth / imageEl.naturalHeight;
-    var compositionScore = (aspect > 1.2 && aspect < 1.8) ? 85 : 60;
+    const aspect = imageEl.naturalWidth / imageEl.naturalHeight;
+    const compositionScore = (aspect > 1.2 && aspect < 1.8) ? 85 : 60;
 
-    var edgeSum = 0;
-    for (let y = 1; y < canvas.height - 1; y++) {
-      for (let x = 1; x < canvas.width - 1; x++) {
-        var curr = contrastData[y * canvas.width + x];
-        var right = contrastData[y * canvas.width + x + 1];
-        var down = contrastData[(y+1) * canvas.width + x];
-        edgeSum += Math.abs(curr - right) + Math.abs(curr - down);
+    // シャープネス (エッジ検出の高速化)
+    let edgeSum = 0;
+    const w = canvas.width;
+    const h = canvas.height;
+    for (let y = 1; y < h - 1; y += 2) { // 高速化: ステップ実行
+      for (let x = 1; x < w - 1; x += 2) {
+        const idx = y * w + x;
+        edgeSum += Math.abs(contrastData[idx] - contrastData[idx + 1]) + 
+                   Math.abs(contrastData[idx] - contrastData[idx + w]);
       }
     }
-    var avgEdge = edgeSum / (canvas.width * canvas.height);
-    var sharpnessScore = Math.round(Math.min(avgEdge / 18 * 100, 100));
+    const sharpnessScore = Math.round(Math.min((edgeSum / (pixels/4)) / 15 * 100, 100));
 
-    var baseTotal = (brightScore * 0.2 + satScore * 0.15 + contrastScore * 0.2 + compositionScore * 0.25 + sharpnessScore * 0.2);
-    var minScore = Math.min(brightScore, satScore, contrastScore, compositionScore, sharpnessScore);
-    var total = Math.round(baseTotal * 0.7 + minScore * 0.3);
+    const baseTotal = (brightScore * 0.2 + satScore * 0.15 + contrastScore * 0.2 + compositionScore * 0.25 + sharpnessScore * 0.2);
+    const minScore = Math.min(brightScore, satScore, contrastScore, compositionScore, sharpnessScore);
+    const total = Math.round(baseTotal * 0.7 + minScore * 0.3);
 
-    var scores = {
+    const scores = {
       total: Math.max(15, Math.min(total, 98)),
       brightness: Math.max(10, brightScore),
       saturation: Math.max(10, satScore),
@@ -1397,7 +1427,7 @@ async function analyzeAndScore(imageEl) {
       sharpness: Math.max(10, sharpnessScore),
     };
 
-    var advices = [];
+    const advices = [];
     advices.push(`【AI鑑定】主役は「${mainSubject}」と見受けられます。`);
 
     if (scores.brightness < 40) advices.push('【露出】アンダー過ぎてディテールが死んでいます。意図的な黒潰れでないなら、露出を1段上げるべきです。');
