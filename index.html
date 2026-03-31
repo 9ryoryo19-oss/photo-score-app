@@ -776,6 +776,7 @@
     <div class="sort-tabs">
       <div class="sort-tab active" id="tab-latest">🕐 最新順</div>
       <div class="sort-tab" id="tab-score">🏆 高得点順</div>
+      <div class="sort-tab" id="tab-fav">❤️ お気に入り</div>
     </div>
     <div class="loading" id="gallery-loading"><div class="spinner"></div><div>読み込み中...</div></div>
     <div class="gallery-grid" id="gallery-grid"></div>
@@ -789,7 +790,32 @@
     <div class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span>ホーム</div>
     <div class="nav-item" id="nav-upload"><span class="nav-icon">📷</span>採点</div>
     <div class="nav-item" id="nav-gallery"><span class="nav-icon">🖼️</span>ギャラリー</div>
+    <div class="nav-item" id="nav-challenge"><span class="nav-icon">🎯</span>チャレンジ</div>
   </nav>
+</div>
+
+<!-- CHALLENGE PAGE -->
+<div class="page" id="page-challenge">
+  <div class="page-header">🎯 撮影チャレンジ</div>
+  <div id="challenge-card" style="background:var(--bg2);border:1px solid var(--gold);border-radius:var(--radius);padding:24px;margin-bottom:20px">
+    <div style="font-size:0.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">今日のミッション</div>
+    <div id="challenge-icon" style="font-size:3rem;margin-bottom:12px;text-align:center">📷</div>
+    <div id="challenge-title" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);text-align:center;margin-bottom:8px">ロード中...</div>
+    <div id="challenge-desc" style="font-size:0.9rem;color:var(--text2);text-align:center;line-height:1.6"></div>
+    <div style="margin-top:16px;background:var(--bg3);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:0.75rem;color:var(--text2);margin-bottom:4px">クリア条件</div>
+      <div id="challenge-condition" style="font-size:0.9rem;color:var(--accent);font-weight:600"></div>
+    </div>
+  </div>
+  <button id="btn-new-challenge" style="width:100%;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;margin-bottom:24px">🔀 別のチャレンジを引く</button>
+
+  <div class="section-title">🏅 クリア履歴</div>
+  <div id="challenge-history" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div id="challenge-history-empty" style="text-align:center;color:var(--text2);padding:40px 20px;display:none">
+    <div style="font-size:2rem;margin-bottom:12px">🎯</div>
+    <div>まだチャレンジをクリアしていません</div>
+    <div style="font-size:0.85rem;margin-top:8px">写真を撮って挑戦してみよう！</div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -915,7 +941,7 @@ function showApp() {
   document.getElementById('app').style.display='block';
   var em=gUser&&gUser.email?gUser.email:'';
   document.getElementById('user-avatar').textContent=em?em[0].toUpperCase():'?';
-  loadStats(); loadGallery(); updateOldAdvice();
+  loadStats(); loadGallery(); updateOldAdvice(); loadChallenge();
 }
 
 // ===== ナビ =====
@@ -927,6 +953,7 @@ function goPage(name) {
   if(name==='gallery') loadGallery();
   if(name==='home') loadStats();
   if(name==='upload'&&!gPendingImg) resetUpload();
+  if(name==='challenge') loadChallenge();
 }
 
 // ===== ホーム =====
@@ -983,6 +1010,7 @@ function setSort(s) {
   gSort=s;
   document.getElementById('tab-latest').classList.toggle('active',s==='latest');
   document.getElementById('tab-score').classList.toggle('active',s==='score');
+  document.getElementById('tab-fav').classList.toggle('active',s==='fav');
   loadGallery();
 }
 
@@ -992,7 +1020,10 @@ function loadGallery() {
   document.getElementById('gallery-grid').innerHTML='';
   document.getElementById('gallery-empty').style.display='none';
   var col=gSort==='score'?'score':'created_at';
-  sbGet('photos?select=*&user_id=eq.'+gUser.id+'&order='+col+'.desc').then(function(data){
+  var filter = gSort==='fav'
+    ? 'photos?select=*&user_id=eq.'+gUser.id+'&is_favorite=eq.true&order=created_at.desc'
+    : 'photos?select=*&user_id=eq.'+gUser.id+'&order='+col+'.desc';
+  sbGet(filter).then(function(data){
     document.getElementById('gallery-loading').style.display='none';
     if(!Array.isArray(data)||!data.length){document.getElementById('gallery-empty').style.display='block';return;}
     gGallery={};
@@ -1003,7 +1034,10 @@ function loadGallery() {
         '<div class="gallery-info">'+
         '<div style="display:flex;align-items:center;justify-content:space-between">'+
         '<div class="gallery-score">'+p.score+'点</div>'+
+        '<div style="display:flex;gap:6px">'+
+        '<button class="fav-btn" data-id="'+p.id+'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px;opacity:'+(p.is_favorite?1:0.3)+'">'+( p.is_favorite?'❤️':'🤍')+'</button>'+
         '<button class="delete-btn" data-id="'+p.id+'">🗑️</button>'+
+        '</div>'+
         '</div>'+
         '<div class="gallery-date">📅 '+fmtDate(p.created_at)+(p.location_name?' 📍'+p.location_name:'')+'</div>'+
         '</div></div>';
@@ -1238,6 +1272,7 @@ function processFile(file) {
       document.getElementById('scoring-loading').style.display='block';
       analyzeAndScore(img).then(function(s){
         gPendingScore=s; showScore(s);
+        checkChallengeCompletion(s);
         document.getElementById('scoring-loading').style.display='none';
       }).catch(function(e){
         toast('採点エラー: '+e.message);
@@ -1340,6 +1375,115 @@ function updateOldAdvice() {
     }).catch(function(){});
 }
 
+// ===== チャレンジデータ =====
+var CHALLENGES = [
+  {icon:'🌅',title:'黄金の時間を捉えろ',desc:'日の出か日没の30分以内に撮影しよう。空が橙色に染まる瞬間が狙い目。',condition:'明るさスコア60点以上で達成',check:function(s){return s.brightness>=60;}},
+  {icon:'🏔️',title:'地平線を支配せよ',desc:'地平線や水平線を画面の三分の一に配置した構図で撮影しよう。',condition:'構図スコア70点以上で達成',check:function(s){return s.composition>=70;}},
+  {icon:'💧',title:'シャープな水を捉えろ',desc:'川・滝・海など水の動きをくっきりと写そう。',condition:'シャープネス70点以上で達成',check:function(s){return s.sharpness>=70;}},
+  {icon:'🌈',title:'色彩の魔法使い',desc:'豊かな色彩の風景を撮影しよう。花畑・紅葉・夕焼けなどが狙い目。',condition:'彩度スコア65点以上で達成',check:function(s){return s.saturation>=65;}},
+  {icon:'⛅',title:'ドラマチックな空',desc:'雲のある空を主役にした写真を撮ろう。明暗差のある雲が理想的。',condition:'コントラスト65点以上で達成',check:function(s){return s.contrast>=65;}},
+  {icon:'🌿',title:'自然の細部を見つけろ',desc:'葉・花・石など自然の小さなディテールに近づいて撮影しよう。',condition:'シャープネス75点以上で達成',check:function(s){return s.sharpness>=75;}},
+  {icon:'🌃',title:'光と影のコントラスト',desc:'強い光源と深い影が共存する場所を探して撮影しよう。',condition:'コントラスト70点以上で達成',check:function(s){return s.contrast>=70;}},
+  {icon:'🏞️',title:'完璧な露出を目指せ',desc:'明るすぎず暗すぎない、バランスのとれた露出で撮影しよう。',condition:'明るさ55〜75点で達成',check:function(s){return s.brightness>=55&&s.brightness<=75;}},
+  {icon:'🎨',title:'総合マスター',desc:'すべての要素が高水準な一枚を撮影しよう。光・色・構図・シャープネスすべてが揃った傑作を目指せ。',condition:'総合スコア75点以上で達成',check:function(s){return s.total>=75;}},
+  {icon:'🌙',title:'静寂の風景',desc:'人工物のない純粋な自然の風景を撮影しよう。',condition:'彩度50点以上 & 構図60点以上で達成',check:function(s){return s.saturation>=50&&s.composition>=60;}},
+];
+
+var gCurrentChallenge = null;
+var gChallengeHistory = [];
+
+function loadChallenge() {
+  try {
+    var saved = localStorage.getItem('pg_challenge');
+    if (saved) {
+      var d = JSON.parse(saved);
+      // 今日のチャレンジを復元
+      if (d.date === todayStr()) {
+        gCurrentChallenge = d.idx;
+      }
+    }
+    var hist = localStorage.getItem('pg_challenge_hist');
+    if (hist) gChallengeHistory = JSON.parse(hist);
+  } catch(e) {}
+  if (gCurrentChallenge === null) pickNewChallenge();
+  renderChallenge();
+  renderChallengeHistory();
+}
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function pickNewChallenge() {
+  gCurrentChallenge = Math.floor(Math.random() * CHALLENGES.length);
+  try { localStorage.setItem('pg_challenge', JSON.stringify({date:todayStr(),idx:gCurrentChallenge})); } catch(e) {}
+}
+
+function renderChallenge() {
+  var c = CHALLENGES[gCurrentChallenge];
+  if (!c) return;
+  document.getElementById('challenge-icon').textContent = c.icon;
+  document.getElementById('challenge-title').textContent = c.title;
+  document.getElementById('challenge-desc').textContent = c.desc;
+  document.getElementById('challenge-condition').textContent = c.condition;
+}
+
+function renderChallengeHistory() {
+  var el = document.getElementById('challenge-history');
+  var emptyEl = document.getElementById('challenge-history-empty');
+  if (!gChallengeHistory.length) {
+    el.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  el.innerHTML = gChallengeHistory.slice().reverse().map(function(h) {
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px">'+
+      '<div style="font-size:2rem">'+h.icon+'</div>'+
+      '<div><div style="font-weight:600;font-size:0.9rem;color:var(--gold)">'+h.title+'</div>'+
+      '<div style="font-size:0.75rem;color:var(--text2);margin-top:2px">'+h.date+' ・ '+h.score+'点でクリア</div></div>'+
+      '<div style="margin-left:auto;font-size:1.5rem">✅</div>'+
+      '</div>';
+  }).join('');
+}
+
+function checkChallengeCompletion(scores) {
+  if (gCurrentChallenge === null) return;
+  var c = CHALLENGES[gCurrentChallenge];
+  if (!c) return;
+  if (c.check(scores)) {
+    // クリア！
+    var hist = {icon:c.icon, title:c.title, date:todayStr(), score:scores.total};
+    gChallengeHistory.push(hist);
+    try { localStorage.setItem('pg_challenge_hist', JSON.stringify(gChallengeHistory)); } catch(e) {}
+    // 次のチャレンジを用意
+    pickNewChallenge();
+    // 通知
+    setTimeout(function() {
+      toast('🎉 チャレンジクリア！「'+c.title+'」');
+    }, 500);
+  }
+}
+
+// ===== お気に入り機能 =====
+function toggleFavorite(id) {
+  var p = gGallery[id];
+  if (!p) return;
+  var newVal = !p.is_favorite;
+  sbPatch('photos?id=eq.'+id+'&user_id=eq.'+gUser.id, {is_favorite: newVal})
+    .then(function() {
+      p.is_favorite = newVal;
+      // ボタンのUIを即座に更新
+      var btn = document.querySelector('.fav-btn[data-id="'+id+'"]');
+      if (btn) {
+        btn.textContent = newVal ? '❤️' : '🤍';
+        btn.style.opacity = newVal ? 1 : 0.3;
+      }
+      toast(newVal ? '❤️ お気に入りに追加' : '🤍 お気に入りを解除');
+    }).catch(function() { toast('更新に失敗しました'); });
+}
+
 // ===== セッション復元 & イベント設定 =====
 window.onload = function() {
   // ボタンイベント
@@ -1349,8 +1493,15 @@ window.onload = function() {
   document.getElementById('nav-home').onclick = function(){goPage('home');};
   document.getElementById('nav-upload').onclick = function(){goPage('upload');};
   document.getElementById('nav-gallery').onclick = function(){goPage('gallery');};
+  document.getElementById('nav-challenge').onclick = function(){goPage('challenge');};
   document.getElementById('tab-latest').onclick = function(){setSort('latest');};
   document.getElementById('tab-score').onclick = function(){setSort('score');};
+  document.getElementById('tab-fav').onclick = function(){setSort('fav');};
+  document.getElementById('btn-new-challenge').onclick = function(){
+    pickNewChallenge();
+    renderChallenge();
+    toast('🔀 新しいチャレンジを引きました！');
+  };
   document.getElementById('btn-library').onclick = function(){document.getElementById('file-lib').click();};
   document.getElementById('btn-camera').onclick = function(){document.getElementById('file-cam').click();};
   document.getElementById('file-lib').onchange = function(e){if(e.target.files[0])processFile(e.target.files[0]);};
@@ -1362,6 +1513,8 @@ window.onload = function() {
   document.getElementById('gallery-grid').onclick = function(e){
     var d=e.target.closest('.delete-btn');
     if(d){doDelete(d.dataset.id);return;}
+    var f=e.target.closest('.fav-btn');
+    if(f){toggleFavorite(f.dataset.id);return;}
     var g=e.target.closest('.gallery-item');
     if(g)openDetail(g.dataset.id);
   };
