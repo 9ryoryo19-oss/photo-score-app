@@ -535,6 +535,59 @@
     }
     .fav-btn.active { color: #e07070; }
 
+    /* Selection UI */
+    .select-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .gallery-item.selecting .select-overlay { display: flex; }
+    .select-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8rem;
+    }
+    .gallery-item.selected .select-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .gallery-item.selected .select-check::after { content: '✓'; }
+
+    .gallery-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      right: 20px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 150;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.3s ease;
+    }
+    .bulk-action-bar.active { display: flex; }
+
     /* Detail Modal */
     .modal {
       position: fixed;
@@ -824,7 +877,10 @@
   </div>
 
   <div class="page" id="page-gallery">
-    <div class="page-header">ギャラリー</div>
+    <div class="gallery-actions">
+      <div class="page-header" style="margin-bottom:0">ギャラリー</div>
+      <button id="btn-select-mode" style="background:none;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer">選択</button>
+    </div>
     <div class="sort-tabs">
       <div class="sort-tab active" id="tab-latest">🕐 最新順</div>
       <div class="sort-tab" id="tab-score">🏆 高得点順</div>
@@ -835,6 +891,13 @@
     <div class="empty-state" id="gallery-empty" style="display:none">
       <div class="empty-icon">🖼️</div><div>まだ写真がありません</div>
       <div style="font-size:0.85rem;margin-top:8px">採点して保存してみよう！</div>
+    </div>
+    <div class="bulk-action-bar" id="bulk-action-bar">
+      <div style="font-size:0.9rem;font-weight:500"><span id="selected-count">0</span>枚を選択中</div>
+      <div style="display:flex;gap:10px">
+        <button id="btn-select-all" style="background:none;border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer">すべて選択</button>
+        <button id="btn-bulk-delete" style="background:var(--danger);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer">削除</button>
+      </div>
     </div>
   </div>
 
@@ -873,6 +936,7 @@ var gUser=null, gToken='', gRefresh='';
 var gPendingImg=null, gPendingScore=null, gPendingLoc=null;
 var gSort='latest', gGallery={}, gChart=null, gIsSignUp=false;
 var gAiModel=null;
+var gSelectMode=false, gSelectedIds=new Set();
 
 // ===== AIモデルのロード =====
 async function loadAiModel() {
@@ -992,7 +1056,10 @@ function goPage(name) {
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
-  if(name==='gallery') loadGallery();
+  if(name==='gallery') {
+    exitSelectMode();
+    loadGallery();
+  }
   if(name==='home') loadStats();
   if(name==='upload'&&!gPendingImg) resetUpload();
 }
@@ -1066,6 +1133,7 @@ function setSort(s) {
   document.getElementById('tab-latest').classList.toggle('active',s==='latest');
   document.getElementById('tab-score').classList.toggle('active',s==='score');
   document.getElementById('tab-fav').classList.toggle('active',s==='fav');
+  exitSelectMode();
   loadGallery();
 }
 
@@ -1082,7 +1150,8 @@ function loadGallery() {
     gGallery={};
     data.forEach(function(p){gGallery[p.id]=p;});
     document.getElementById('gallery-grid').innerHTML=data.map(function(p){
-      return '<div class="gallery-item" data-id="'+p.id+'">'+
+      return '<div class="gallery-item '+(gSelectMode?'selecting':'')+' '+(gSelectedIds.has(p.id)?'selected':'')+'" data-id="'+p.id+'">'+
+        '<div class="select-overlay"><div class="select-check"></div></div>'+
         '<button class="fav-btn '+(p.is_favorite?'active':'')+'" data-id="'+p.id+'">❤️</button>'+
         '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';this.style.minHeight=\'120px\';">'+
         '<div class="gallery-info">'+
@@ -1094,6 +1163,79 @@ function loadGallery() {
         '</div></div>';
     }).join('');
   }).catch(function(){document.getElementById('gallery-loading').style.display='none';});
+}
+
+// 一括選択モード
+function toggleSelectMode() {
+  gSelectMode = !gSelectMode;
+  var btn = document.getElementById('btn-select-mode');
+  btn.textContent = gSelectMode ? 'キャンセル' : '選択';
+  btn.style.borderColor = gSelectMode ? 'var(--accent)' : 'var(--border)';
+  btn.style.color = gSelectMode ? 'var(--accent)' : 'var(--text2)';
+  
+  document.getElementById('bulk-action-bar').classList.toggle('active', gSelectMode);
+  if(!gSelectMode) {
+    gSelectedIds.clear();
+    updateSelectedCount();
+  }
+  loadGallery();
+}
+
+function exitSelectMode() {
+  gSelectMode = false;
+  gSelectedIds.clear();
+  document.getElementById('btn-select-mode').textContent = '選択';
+  document.getElementById('btn-select-mode').style.borderColor = 'var(--border)';
+  document.getElementById('btn-select-mode').style.color = 'var(--text2)';
+  document.getElementById('bulk-action-bar').classList.remove('active');
+  updateSelectedCount();
+}
+
+function toggleItemSelection(id) {
+  if(gSelectedIds.has(id)) gSelectedIds.delete(id);
+  else gSelectedIds.add(id);
+  updateSelectedCount();
+  loadGallery();
+}
+
+function selectAllItems() {
+  var allIds = Object.keys(gGallery);
+  if(gSelectedIds.size === allIds.length) {
+    gSelectedIds.clear();
+  } else {
+    allIds.forEach(function(id){ gSelectedIds.add(id); });
+  }
+  updateSelectedCount();
+  loadGallery();
+}
+
+function updateSelectedCount() {
+  document.getElementById('selected-count').textContent = gSelectedIds.size;
+  document.getElementById('btn-bulk-delete').disabled = gSelectedIds.size === 0;
+  document.getElementById('btn-bulk-delete').style.opacity = gSelectedIds.size === 0 ? 0.5 : 1;
+}
+
+async function doBulkDelete() {
+  var count = gSelectedIds.size;
+  if(count === 0) return;
+  if(!confirm(count + '枚の写真を削除しますか？\nこの操作は取り消せません。')) return;
+  
+  var btn = document.getElementById('btn-bulk-delete');
+  btn.textContent = '削除中...'; btn.disabled = true;
+  
+  var ids = Array.from(gSelectedIds);
+  // Supabaseのinフィルタを使用して一括削除
+  try {
+    await sbDelete('photos?id=in.(' + ids.join(',') + ')&user_id=eq.' + gUser.id);
+    toast('🗑️ ' + count + '枚削除しました');
+    exitSelectMode();
+    loadStats();
+    loadGallery();
+  } catch(e) {
+    toast('削除に失敗しました');
+  } finally {
+    btn.textContent = '削除'; btn.disabled = false;
+  }
 }
 
 function toggleFav(id) {
@@ -1429,13 +1571,28 @@ window.onload = function() {
   document.getElementById('btn-save').onclick = doSave;
   document.getElementById('btn-modal-close').onclick = function(){document.getElementById('detail-modal').classList.remove('open');};
   document.getElementById('detail-modal').onclick = function(e){if(e.target===this)this.classList.remove('open');};
+  
+  // ギャラリー関連イベント
+  document.getElementById('btn-select-mode').onclick = toggleSelectMode;
+  document.getElementById('btn-select-all').onclick = selectAllItems;
+  document.getElementById('btn-bulk-delete').onclick = doBulkDelete;
+  
   document.getElementById('gallery-grid').onclick = function(e){
-    var f=e.target.closest('.fav-btn');
-    if(f){toggleFav(f.dataset.id);return;}
-    var d=e.target.closest('.delete-btn');
-    if(d){doDelete(d.dataset.id);return;}
     var g=e.target.closest('.gallery-item');
-    if(g)openDetail(g.dataset.id);
+    if(!g) return;
+    var id = g.dataset.id;
+    
+    if(gSelectMode) {
+      toggleItemSelection(id);
+      return;
+    }
+    
+    var f=e.target.closest('.fav-btn');
+    if(f){toggleFav(id);return;}
+    var d=e.target.closest('.delete-btn');
+    if(d){doDelete(id);return;}
+    
+    openDetail(id);
   };
 
   // セッション復元
