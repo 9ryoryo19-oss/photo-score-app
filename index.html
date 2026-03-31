@@ -545,7 +545,8 @@
       box-shadow: 0 0 10px rgba(255,77,77,0.4);
     }
     .fav-btn:not(.active) {
-      color: rgba(255,255,255,0.8);
+      color: #ffffff; /* 未設定時は白 */
+      border-color: rgba(255,255,255,0.6);
     }
 
     /* Selection UI */
@@ -1222,7 +1223,6 @@ function loadGallery() {
     gGallery={};
     data.forEach(function(p){gGallery[p.id]=p;});
     document.getElementById('gallery-grid').innerHTML=data.map(function(p){
-      // 画像URLが空または不正な場合のフォールバック
       var imgUrl = p.image_url || '';
       return '<div class="gallery-item '+(gSelectMode?'selecting':'')+' '+(gSelectedIds.has(p.id)?'selected':'')+'" data-id="'+p.id+'">'+
         '<div class="select-overlay"><div class="select-check"></div></div>'+
@@ -1346,23 +1346,18 @@ function doDelete(id) {
   }).catch(function(){toast('削除に失敗しました');});
 }
 
-// ===== プロ仕様 AI 採点エンジン (高速化対応版) =====
+// ===== プロ仕様 AI 採点エンジン (詳細アドバイス版) =====
 async function analyzeAndScore(imageEl) {
   document.getElementById('loading-text').textContent = 'AIが写真を「見て」います...';
-  
-  // 高速化: 事前ロード済みのモデルを使用
   const model = await loadAiModel();
-  
-  // 高速化: 解析用の軽量キャンバス作成
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  const MAX = 224; // MobileNetの標準入力サイズに合わせて最適化
+  const MAX = 224;
   const scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
   canvas.width = imageEl.naturalWidth * scale;
   canvas.height = imageEl.naturalHeight * scale;
   ctx.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
 
-  // AIによる物体認識 (非同期で実行)
   let predictions = [];
   if (model) {
     predictions = await model.classify(canvas);
@@ -1372,7 +1367,6 @@ async function analyzeAndScore(imageEl) {
   document.getElementById('loading-text').textContent = 'プロの視点で解析中...';
   
   return new Promise(function(resolve) {
-    // 高速化: ピクセルデータの取得と解析
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
     const pixels = data.length / 4;
@@ -1385,16 +1379,10 @@ async function analyzeAndScore(imageEl) {
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i], g = data[i+1], b = data[i+2];
       const max = Math.max(r,g,b), min = Math.min(r,g,b);
-      
-      // 明るさ (Luminance)
       const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
       totalBrightness += lum;
-      
-      // 彩度
       const sat = max === 0 ? 0 : (max - min) / max;
       totalSat += sat;
-      
-      // コントラスト用グレースケール
       const gray = (r + g + b) / 3;
       contrastData[i/4] = gray;
       totalContrastVal += gray;
@@ -1402,30 +1390,22 @@ async function analyzeAndScore(imageEl) {
 
     const avgBrightness = totalBrightness / pixels;
     const brightScore = Math.round(100 - Math.abs(avgBrightness - 0.45) * 200);
-
     const avgSat = totalSat / pixels;
     const satScore = Math.round(Math.min(avgSat * 150, 100));
-
     const meanContrast = totalContrastVal / pixels;
     let varianceSum = 0;
-    for(let i=0; i<pixels; i++) {
-      varianceSum += Math.pow(contrastData[i] - meanContrast, 2);
-    }
+    for(let i=0; i<pixels; i++) varianceSum += Math.pow(contrastData[i] - meanContrast, 2);
     const variance = varianceSum / pixels;
     const contrastScore = Math.round(Math.min(Math.sqrt(variance) / 55 * 100, 100));
-
     const aspect = imageEl.naturalWidth / imageEl.naturalHeight;
     const compositionScore = (aspect > 1.2 && aspect < 1.8) ? 85 : 60;
 
-    // シャープネス (エッジ検出の高速化)
     let edgeSum = 0;
-    const w = canvas.width;
-    const h = canvas.height;
-    for (let y = 1; y < h - 1; y += 2) { // 高速化: ステップ実行
+    const w = canvas.width, h = canvas.height;
+    for (let y = 1; y < h - 1; y += 2) {
       for (let x = 1; x < w - 1; x += 2) {
         const idx = y * w + x;
-        edgeSum += Math.abs(contrastData[idx] - contrastData[idx + 1]) + 
-                   Math.abs(contrastData[idx] - contrastData[idx + w]);
+        edgeSum += Math.abs(contrastData[idx] - contrastData[idx + 1]) + Math.abs(contrastData[idx] - contrastData[idx + w]);
       }
     }
     const sharpnessScore = Math.round(Math.min((edgeSum / (pixels/4)) / 15 * 100, 100));
@@ -1444,22 +1424,32 @@ async function analyzeAndScore(imageEl) {
     };
 
     const advices = [];
-    advices.push(`【AI鑑定】主役は「${mainSubject}」と見受けられます。`);
+    advices.push(`【AI鑑定】主役は「${mainSubject}」です。`);
 
-    if (scores.brightness < 40) advices.push('【露出】アンダー過ぎてディテールが死んでいます。意図的な黒潰れでないなら、露出を1段上げるべきです。');
-    else if (scores.brightness > 80) advices.push('【露出】ハイライトが飛び、情緒が欠けています。もっと光をコントロールしてください。');
-    else advices.push('【露出】光の捉え方は悪くありません。');
+    // 露出アドバイスの詳細化
+    if (scores.brightness < 40) advices.push('【露出】アンダー過ぎます。シャドウ部の階調が失われており、写真に重苦しい印象を与えています。意図的なローキーでないなら、露出補正を+1.0程度かけるか、現像時にシャドウを持ち上げてください。');
+    else if (scores.brightness > 80) advices.push('【露出】オーバーです。ハイライトが飛び、空や明るい部分の質感が消失しています。露出補正を-0.7程度に設定し、白飛びを抑えることで、より深みのある表現になります。');
+    else advices.push('【露出】適正です。光のバランスが良く、被写体の質感が丁寧に捉えられています。');
 
-    if (scores.sharpness < 50) advices.push('【解像】ピントが甘い。あるいは手ブレ。基本ができていません。三脚を使うか、シャッタースピードを意識しなさい。');
-    else if (scores.sharpness > 85) advices.push('【解像】非常にシャープで、被写体の質感が伝わります。');
+    // 解像・シャープネスの詳細化
+    if (scores.sharpness < 50) advices.push('【解像】ピントが甘い、あるいは微細な手ブレが発生しています。シャッタースピードを「1/焦点距離」秒以上に保つか、三脚を使いなさい。また、AFポイントを主役の目に確実に合わせる基本を徹底してください。');
+    else advices.push('【解像】良好です。被写体のエッジが立っており、クリアな描写です。');
 
-    if (scores.composition < 70) advices.push('【構図】漫然とシャッターを切っただけに見えます。三分割法を意識し、視線の誘導を考えなさい。');
-    else advices.push('【構図】安定感のある切り取り方です。');
+    // 構図の詳細化
+    if (scores.composition < 70) advices.push('【構図】日の丸構図（中央配置）に頼りすぎています。三分割法を意識し、主役を交点に配置することで、画面に「間」と「物語性」が生まれます。水平線が傾いていないかも再確認してください。');
+    else advices.push('【構図】安定しています。視線の誘導が考えられており、画面全体にリズムがあります。');
 
-    if (scores.total >= 85) advices.push('【総評】素晴らしい。プロの現場でも通用する一枚です。この感性を大切に。');
-    else if (scores.total >= 70) advices.push('【総評】悪くはないが、まだ「記録」の域を出ていません。「表現」としての写真を意識しなさい。');
-    else if (scores.total >= 50) advices.push('【総評】平凡です。どこかで見たような写真。もっと被写体と向き合い、独自の視点を探しなさい。');
-    else advices.push('【総評】厳しいことを言いますが、これは写真ではありません。ただの画像です。基礎からやり直しなさい。');
+    // 被写体別の具体的アドバイス
+    if (mainSubject.includes('sky') || mainSubject.includes('cloud')) {
+      advices.push('【プロのコツ】空を撮る際は、PLフィルターを使って青の深みを強調したり、雲の形を活かした対角線構図を試すと、よりダイナミックになります。');
+    } else if (mainSubject.includes('tree') || mainSubject.includes('plant') || mainSubject.includes('flower')) {
+      advices.push('【プロのコツ】植物を撮る際は、背景のボケ味を意識してください。F値を小さくし、被写体と背景の距離を離すことで、主役がより際立ちます。');
+    }
+
+    // 総評の詳細化
+    if (scores.total >= 85) advices.push('【総評】素晴らしい。光、構図、タイミングが完璧に調和しています。プロの現場でも通用する、意図の明確な一枚です。');
+    else if (scores.total >= 70) advices.push('【総評】技術的には合格点ですが、まだ「綺麗に撮れた」という段階です。何を伝えたいのか、という「作家性」を意識して、レタッチで色調を追い込んでみてください。');
+    else advices.push('【総評】厳しいことを言いますが、まだ「シャッターを押しただけ」の状態です。光の向き、背景の整理、主役の配置。これらを一枚に込める努力を怠らないでください。');
 
     scores.advice = advices.join('\n\n');
     resolve(scores);
@@ -1641,7 +1631,6 @@ function updateOldAdvice() {
 
 // ===== セッション復元 & イベント設定 =====
 window.onload = function() {
-  // ボタンイベント
   document.getElementById('auth-btn').onclick = doLogin;
   document.getElementById('toggle-link').onclick = toggleMode;
   document.getElementById('user-avatar').onclick = doLogout;
@@ -1659,33 +1648,23 @@ window.onload = function() {
   document.getElementById('btn-save').onclick = doSave;
   document.getElementById('btn-modal-close').onclick = function(){document.getElementById('detail-modal').classList.remove('open');};
   document.getElementById('detail-modal').onclick = function(e){if(e.target===this)this.classList.remove('open');};
-  
-  // ギャラリー関連イベント
   document.getElementById('btn-select-mode').onclick = toggleSelectMode;
   document.getElementById('btn-select-all').onclick = selectAllItems;
   document.getElementById('btn-bulk-delete').onclick = doBulkDelete;
   document.getElementById('sub-tab-gallery').onclick = function(){goSubTab('gallery');};
   document.getElementById('sub-tab-challenge').onclick = function(){goSubTab('challenge');};
-  
   document.getElementById('gallery-grid').onclick = function(e){
     var g=e.target.closest('.gallery-item');
     if(!g) return;
     var id = g.dataset.id;
-    
-    if(gSelectMode) {
-      toggleItemSelection(id);
-      return;
-    }
-    
+    if(gSelectMode) { toggleItemSelection(id); return; }
     var f=e.target.closest('.fav-btn');
     if(f){toggleFav(id);return;}
     var d=e.target.closest('.delete-btn');
     if(d){doDelete(id);return;}
-    
     openDetail(id);
   };
 
-  // セッション復元
   try {
     var t=localStorage.getItem('sb_t');
     if(t) {
