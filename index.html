@@ -741,6 +741,33 @@
       font-weight: 600;
     }
 
+    /* Sub Tabs for Gallery/Challenge */
+    .sub-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .sub-tab {
+      padding: 12px 20px;
+      color: var(--text2);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+    }
+    .sub-tab.active {
+      color: var(--accent);
+    }
+    .sub-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+
     /* Challenge Section */
     .challenge-card {
       background: var(--bg2);
@@ -833,11 +860,6 @@
       <div><div class="rank-name" id="rank-name">ビギナー</div><div class="rank-desc" id="rank-desc">まずは1枚目を撮ってみよう！</div></div>
     </div>
 
-    <div class="challenge-card">
-      <div class="challenge-title">🎯 撮影チャレンジ</div>
-      <div class="challenge-list" id="challenge-list"></div>
-    </div>
-
     <div class="section-title">🏅 バッジ</div>
     <div class="badges-row" id="badges-row"></div>
     <div class="section-title">📈 スコア推移</div>
@@ -877,21 +899,39 @@
   </div>
 
   <div class="page" id="page-gallery">
-    <div class="gallery-actions">
-      <div class="page-header" style="margin-bottom:0">ギャラリー</div>
-      <button id="btn-select-mode" style="background:none;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer">選択</button>
+    <div class="sub-tabs">
+      <div class="sub-tab active" id="sub-tab-gallery">ギャラリー</div>
+      <div class="sub-tab" id="sub-tab-challenge">撮影チャレンジ</div>
     </div>
-    <div class="sort-tabs">
-      <div class="sort-tab active" id="tab-latest">🕐 最新順</div>
-      <div class="sort-tab" id="tab-score">🏆 高得点順</div>
-      <div class="sort-tab" id="tab-fav">❤️ お気に入り</div>
+
+    <div id="gallery-content">
+      <div class="gallery-actions">
+        <div class="page-header" style="margin-bottom:0;font-size:1.2rem">保存した写真</div>
+        <button id="btn-select-mode" style="background:none;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:8px;font-size:0.85rem;cursor:pointer">選択</button>
+      </div>
+      <div class="sort-tabs">
+        <div class="sort-tab active" id="tab-latest">🕐 最新順</div>
+        <div class="sort-tab" id="tab-score">🏆 高得点順</div>
+        <div class="sort-tab" id="tab-fav">❤️ お気に入り</div>
+      </div>
+      <div class="loading" id="gallery-loading"><div class="spinner"></div><div>読み込み中...</div></div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <div class="empty-state" id="gallery-empty" style="display:none">
+        <div class="empty-icon">🖼️</div><div>まだ写真がありません</div>
+        <div style="font-size:0.85rem;margin-top:8px">採点して保存してみよう！</div>
+      </div>
     </div>
-    <div class="loading" id="gallery-loading"><div class="spinner"></div><div>読み込み中...</div></div>
-    <div class="gallery-grid" id="gallery-grid"></div>
-    <div class="empty-state" id="gallery-empty" style="display:none">
-      <div class="empty-icon">🖼️</div><div>まだ写真がありません</div>
-      <div style="font-size:0.85rem;margin-top:8px">採点して保存してみよう！</div>
+
+    <div id="challenge-content" style="display:none">
+      <div class="page-header" style="font-size:1.2rem">🎯 撮影チャレンジ</div>
+      <div class="challenge-card">
+        <div class="challenge-list" id="challenge-list"></div>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text2);text-align:center;padding:0 20px">
+        AIが写真の内容を認識するとチェックがつきます。<br>すべての被写体を制覇しよう！
+      </div>
     </div>
+
     <div class="bulk-action-bar" id="bulk-action-bar">
       <div style="font-size:0.9rem;font-weight:500"><span id="selected-count">0</span>枚を選択中</div>
       <div style="display:flex;gap:10px">
@@ -1058,10 +1098,19 @@ function goPage(name) {
   document.getElementById('nav-'+name).classList.add('active');
   if(name==='gallery') {
     exitSelectMode();
+    goSubTab('gallery');
     loadGallery();
   }
   if(name==='home') loadStats();
   if(name==='upload'&&!gPendingImg) resetUpload();
+}
+
+function goSubTab(name) {
+  document.getElementById('sub-tab-gallery').classList.toggle('active', name==='gallery');
+  document.getElementById('sub-tab-challenge').classList.toggle('active', name==='challenge');
+  document.getElementById('gallery-content').style.display = name==='gallery' ? 'block' : 'none';
+  document.getElementById('challenge-content').style.display = name==='challenge' ? 'block' : 'none';
+  if(name==='challenge') exitSelectMode();
 }
 
 // ===== ホーム =====
@@ -1224,7 +1273,6 @@ async function doBulkDelete() {
   btn.textContent = '削除中...'; btn.disabled = true;
   
   var ids = Array.from(gSelectedIds);
-  // Supabaseのinフィルタを使用して一括削除
   try {
     await sbDelete('photos?id=in.(' + ids.join(',') + ')&user_id=eq.' + gUser.id);
     toast('🗑️ ' + count + '枚削除しました');
@@ -1277,7 +1325,6 @@ async function analyzeAndScore(imageEl) {
   document.getElementById('loading-text').textContent = 'AIが写真を「見て」います...';
   const model = await loadAiModel();
   
-  // AIによる物体認識
   let predictions = [];
   if (model) {
     predictions = await model.classify(imageEl);
@@ -1312,9 +1359,8 @@ async function analyzeAndScore(imageEl) {
       contrastData.push((r + g + b) / 3);
     }
 
-    // プロ基準の厳しい採点ロジック
     var avgBrightness = brightnessValues.reduce((a,b)=>a+b,0) / pixels;
-    var brightScore = Math.round(100 - Math.abs(avgBrightness - 0.45) * 200); // 0.45が理想（ややアンダー気味を好むプロ仕様）
+    var brightScore = Math.round(100 - Math.abs(avgBrightness - 0.45) * 200);
 
     var avgSat = satValues.reduce((a,b)=>a+b,0) / pixels;
     var satScore = Math.round(Math.min(avgSat * 150, 100));
@@ -1323,11 +1369,9 @@ async function analyzeAndScore(imageEl) {
     var variance = contrastData.reduce((a,b)=>a + Math.pow(b-meanContrast, 2), 0) / pixels;
     var contrastScore = Math.round(Math.min(Math.sqrt(variance) / 55 * 100, 100));
 
-    // 構図評価（AI認識結果を加味）
     var aspect = imageEl.naturalWidth / imageEl.naturalHeight;
-    var compositionScore = (aspect > 1.2 && aspect < 1.8) ? 85 : 60; // 黄金比に近いアスペクト比を評価
+    var compositionScore = (aspect > 1.2 && aspect < 1.8) ? 85 : 60;
 
-    // シャープネス（エッジ検出）
     var edgeSum = 0;
     for (let y = 1; y < canvas.height - 1; y++) {
       for (let x = 1; x < canvas.width - 1; x++) {
@@ -1340,13 +1384,12 @@ async function analyzeAndScore(imageEl) {
     var avgEdge = edgeSum / (canvas.width * canvas.height);
     var sharpnessScore = Math.round(Math.min(avgEdge / 18 * 100, 100));
 
-    // プロ基準：平均ではなく、最も低い項目が全体スコアを大きく引き下げる（欠点を見逃さない）
     var baseTotal = (brightScore * 0.2 + satScore * 0.15 + contrastScore * 0.2 + compositionScore * 0.25 + sharpnessScore * 0.2);
     var minScore = Math.min(brightScore, satScore, contrastScore, compositionScore, sharpnessScore);
     var total = Math.round(baseTotal * 0.7 + minScore * 0.3);
 
     var scores = {
-      total: Math.max(15, Math.min(total, 98)), // 100点はプロでも出さない
+      total: Math.max(15, Math.min(total, 98)),
       brightness: Math.max(10, brightScore),
       saturation: Math.max(10, satScore),
       contrast: Math.max(10, contrastScore),
@@ -1354,7 +1397,6 @@ async function analyzeAndScore(imageEl) {
       sharpness: Math.max(10, sharpnessScore),
     };
 
-    // プロの辛口アドバイス生成
     var advices = [];
     advices.push(`【AI鑑定】主役は「${mainSubject}」と見受けられます。`);
 
@@ -1576,6 +1618,8 @@ window.onload = function() {
   document.getElementById('btn-select-mode').onclick = toggleSelectMode;
   document.getElementById('btn-select-all').onclick = selectAllItems;
   document.getElementById('btn-bulk-delete').onclick = doBulkDelete;
+  document.getElementById('sub-tab-gallery').onclick = function(){goSubTab('gallery');};
+  document.getElementById('sub-tab-challenge').onclick = function(){goSubTab('challenge');};
   
   document.getElementById('gallery-grid').onclick = function(e){
     var g=e.target.closest('.gallery-item');
