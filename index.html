@@ -149,7 +149,7 @@
       padding: 10px 14px;
       font-size: 0.85rem;
       margin-bottom: 16px;
-      /* display: none; */ /* デバッグのため一時的にコメントアウト */
+      display: none;
     }
 
     /* ===== MAIN APP ===== */
@@ -888,7 +888,7 @@
   <div class="auth-tagline">風景写真で成長する、あなたの記録</div>
   <div class="auth-card">
     <div class="auth-title" id="auth-title">ログイン</div>
-    <div class="auth-error" id="auth-error" style="display:block;">初期エラーメッセージ</div>
+    <div class="auth-error" id="auth-error"></div>
     <div class="form-group" id="name-group" style="display:none">
       <label>ニックネーム</label>
       <input type="text" id="input-name" placeholder="あなたの名前">
@@ -902,6 +902,7 @@
       <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
     </div>
     <button class="btn-primary" id="auth-btn">ログイン</button>
+    <button onclick="alert('test button clicked!')" style="margin-top:10px;width:100%;padding:10px;background:green;color:white;border:none;border-radius:10px;">テストボタン</button>
     <div class="auth-switch" id="auth-switch">
       アカウントがない方は <span id="toggle-link" style="color:var(--accent);cursor:pointer">新規登録</span>
     </div>
