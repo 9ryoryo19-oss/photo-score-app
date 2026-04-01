@@ -149,7 +149,7 @@
       padding: 10px 14px;
       font-size: 0.85rem;
       margin-bottom: 16px;
-      display: none;
+      /* display: none; */ /* デバッグのため一時的にコメントアウト */
     }
 
     /* ===== MAIN APP ===== */
@@ -888,7 +888,7 @@
   <div class="auth-tagline">風景写真で成長する、あなたの記録</div>
   <div class="auth-card">
     <div class="auth-title" id="auth-title">ログイン</div>
-    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-error" id="auth-error" style="display:block;">初期エラーメッセージ</div>
     <div class="form-group" id="name-group" style="display:none">
       <label>ニックネーム</label>
       <input type="text" id="input-name" placeholder="あなたの名前">
@@ -1604,6 +1604,7 @@ function doSave() {
 }
 
 window.onload = function() {
+  console.log("window.onload started");
   document.getElementById('auth-btn').onclick = doLogin;
   document.getElementById('toggle-link').onclick = toggleMode;
   document.getElementById('user-avatar').onclick = doLogout;
