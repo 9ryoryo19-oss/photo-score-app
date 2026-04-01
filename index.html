@@ -1062,15 +1062,15 @@ var ACADEMY_DATA = [
   {
     id: 'composition', tag: 'Composition', title: '構図の黄金律', icon: '📐',
     desc: '三分割法や対角線構図など、写真の安定感を劇的に変える基本テクニック。',
-    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
-                <svg width="200" height="150" viewBox="0 0 200 150" style="max-width:100%">
-                  <rect x="10" y="10" width="180" height="130" rx="4" fill="none" stroke="#c8a96e" stroke-width="1"/>
-                  <line x1="70" y1="10" x2="70" y2="140" stroke="#c8a96e" stroke-width="0.5" stroke-dasharray="4"/>
-                  <line x1="130" y1="10" x2="130" y2="140" stroke="#c8a96e" stroke-width="0.5" stroke-dasharray="4"/>
-                  <line x1="10" y1="53" x2="190" y2="53" stroke="#c8a96e" stroke-width="0.5" stroke-dasharray="4"/>
-                  <line x1="10" y1="96" x2="190" y2="96" stroke="#c8a96e" stroke-width="0.5" stroke-dasharray="4"/>
-                  <circle cx="130" cy="53" r="8" fill="#c8a96e" opacity="0.6"/>
-                  <text x="130" y="40" fill="#c8a96e" font-size="10" text-anchor="middle">主役をここに配置</text>
+    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;min-height:180px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+                <svg width="200" height="150" viewBox="0 0 200 150" style="max-width:100%;display:block;margin:0 auto">
+                  <rect x="10" y="10" width="180" height="130" rx="4" fill="none" stroke="#c8a96e" stroke-width="1.5"/>
+                  <line x1="70" y1="10" x2="70" y2="140" stroke="#c8a96e" stroke-width="1" stroke-dasharray="4"/>
+                  <line x1="130" y1="10" x2="130" y2="140" stroke="#c8a96e" stroke-width="1" stroke-dasharray="4"/>
+                  <line x1="10" y1="53" x2="190" y2="53" stroke="#c8a96e" stroke-width="1" stroke-dasharray="4"/>
+                  <line x1="10" y1="96" x2="190" y2="96" stroke="#c8a96e" stroke-width="1" stroke-dasharray="4"/>
+                  <circle cx="130" cy="53" r="8" fill="#c8a96e" opacity="0.8"/>
+                  <text x="130" y="40" fill="#c8a96e" font-size="12" font-weight="bold" text-anchor="middle">主役をここに配置</text>
                 </svg>
                 <div style="font-size:0.8rem;color:var(--text2);margin-top:10px">【図解】三分割法のグリッドと交点</div>
               </div>
@@ -1081,13 +1081,13 @@ var ACADEMY_DATA = [
   {
     id: 'lighting', tag: 'Lighting', title: '光を操る技術', icon: '☀️',
     desc: '順光、逆光、サイド光。光の向きを理解して、ドラマチックな表現を手に入れる。',
-    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
-                <svg width="200" height="150" viewBox="0 0 200 150" style="max-width:100%">
-                  <circle cx="160" cy="40" r="15" fill="#ffd700" opacity="0.8"/>
-                  <line x1="145" y1="55" x2="100" y2="100" stroke="#ffd700" stroke-width="2" stroke-dasharray="4"/>
+    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;min-height:180px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+                <svg width="200" height="150" viewBox="0 0 200 150" style="max-width:100%;display:block;margin:0 auto">
+                  <circle cx="160" cy="40" r="15" fill="#ffd700" opacity="0.9"/>
+                  <line x1="145" y1="55" x2="100" y2="100" stroke="#ffd700" stroke-width="2.5" stroke-dasharray="4"/>
                   <rect x="70" y="90" width="60" height="40" rx="4" fill="#c8a96e"/>
-                  <path d="M70 130 L40 145 L100 145 Z" fill="rgba(0,0,0,0.2)"/>
-                  <text x="160" y="70" fill="#ffd700" font-size="10" text-anchor="middle">逆光・サイド光</text>
+                  <path d="M70 130 L40 145 L100 145 Z" fill="rgba(255,255,255,0.1)"/>
+                  <text x="160" y="70" fill="#ffd700" font-size="12" font-weight="bold" text-anchor="middle">逆光・サイド光</text>
                 </svg>
                 <div style="font-size:0.8rem;color:var(--text2);margin-top:10px">【図解】光の向きと影の演出</div>
               </div>
@@ -1098,14 +1098,14 @@ var ACADEMY_DATA = [
   {
     id: 'exposure', tag: 'Exposure', title: '露出の三要素', icon: '⚙️',
     desc: 'F値、シャッタースピード、ISO感度。明るさを決める3つの仕組みをマスター。',
-    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
-                <svg width="200" height="100" viewBox="0 0 200 100" style="max-width:100%">
-                  <circle cx="40" cy="50" r="30" fill="none" stroke="#c8a96e" stroke-width="2"/>
-                  <circle cx="40" cy="50" r="25" fill="#c8a96e" opacity="0.2"/>
-                  <text x="40" y="95" fill="#c8a96e" font-size="10" text-anchor="middle">F値 小 (ボケる)</text>
-                  <circle cx="160" cy="50" r="30" fill="none" stroke="#c8a96e" stroke-width="2"/>
+    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;min-height:130px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+                <svg width="200" height="100" viewBox="0 0 200 100" style="max-width:100%;display:block;margin:0 auto">
+                  <circle cx="40" cy="50" r="30" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+                  <circle cx="40" cy="50" r="25" fill="#c8a96e" opacity="0.3"/>
+                  <text x="40" y="95" fill="#c8a96e" font-size="11" font-weight="bold" text-anchor="middle">F値 小 (ボケる)</text>
+                  <circle cx="160" cy="50" r="30" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
                   <circle cx="160" cy="50" r="5" fill="#c8a96e"/>
-                  <text x="160" y="95" fill="#c8a96e" font-size="10" text-anchor="middle">F値 大 (くっきり)</text>
+                  <text x="160" y="95" fill="#c8a96e" font-size="11" font-weight="bold" text-anchor="middle">F値 大 (くっきり)</text>
                 </svg>
                 <div style="font-size:0.8rem;color:var(--text2);margin-top:10px">【図解】絞り（F値）によるボケの変化</div>
               </div>
@@ -1116,13 +1116,13 @@ var ACADEMY_DATA = [
   {
     id: 'smartphone', tag: 'Smartphone', title: 'スマホ撮影の極意', icon: '📱',
     desc: 'レンズの清掃から露出補正まで、スマホカメラの性能を120%引き出す方法。',
-    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center">
-                <svg width="200" height="120" viewBox="0 0 200 120" style="max-width:100%">
-                  <rect x="60" y="10" width="80" height="100" rx="10" fill="none" stroke="#c8a96e" stroke-width="2"/>
-                  <circle cx="100" cy="60" r="15" fill="none" stroke="#ffd700" stroke-width="1"/>
-                  <line x1="125" y1="30" x2="125" y2="90" stroke="#ffd700" stroke-width="2"/>
-                  <circle cx="125" cy="45" r="5" fill="#ffd700"/>
-                  <text x="100" y="115" fill="#c8a96e" font-size="9" text-anchor="middle">タップして明るさ調整</text>
+    content: `<div style="background:rgba(200,169,110,0.05);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;min-height:150px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+                <svg width="200" height="120" viewBox="0 0 200 120" style="max-width:100%;display:block;margin:0 auto">
+                  <rect x="60" y="10" width="80" height="100" rx="10" fill="none" stroke="#c8a96e" stroke-width="2.5"/>
+                  <circle cx="100" cy="60" r="15" fill="none" stroke="#ffd700" stroke-width="1.5"/>
+                  <line x1="125" y1="30" x2="125" y2="90" stroke="#ffd700" stroke-width="2.5"/>
+                  <circle cx="125" cy="45" r="6" fill="#ffd700"/>
+                  <text x="100" y="115" fill="#c8a96e" font-size="11" font-weight="bold" text-anchor="middle">タップして明るさ調整</text>
                 </svg>
                 <div style="font-size:0.8rem;color:var(--text2);margin-top:10px">【図解】スマホでの露出補正操作</div>
               </div>
