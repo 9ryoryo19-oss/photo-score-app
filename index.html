@@ -1203,29 +1203,41 @@ function toggleMode() {
 }
 
 function doLogin() {
+  console.log('doLogin function called');
+  var authErrorEl = document.getElementById('auth-error');
+  authErrorEl.style.display = 'none'; // エラーメッセージを初期化
+
   var email=document.getElementById('input-email').value.trim();
   var pw=document.getElementById('input-password').value;
   var btn=document.getElementById('auth-btn');
-  if(!email||!pw){showErr('メールアドレスとパスワードを入力してください');return;}
+    if(!email||!pw){showErr('メールアドレスとパスワードを入力してください'); console.log('Validation failed: email or password missing'); return;}
   btn.textContent='処理中...'; btn.disabled=true;
   fetch(SB+(gIsSignUp?'/auth/v1/signup':'/auth/v1/token?grant_type=password'),{
     method:'POST',
     headers:{'Content-Type':'application/json',apikey:SK},
     body:JSON.stringify({email:email,password:pw})
-  }).then(function(r){return r.json();}).then(function(d){
+  }).then(function(r){
+    console.log('Supabase API response status:', r.status);
+    return r.json();
+  }).then(function(d){
     btn.textContent=gIsSignUp?'登録する':'ログイン'; btn.disabled=false;
+    console.log('Supabase API response data:', d);
     if(d.access_token){
       gToken=d.access_token; gRefresh=d.refresh_token||''; gUser=d.user;
-      try{localStorage.setItem('sb_t',gToken);localStorage.setItem('sb_r',gRefresh);}catch(e){}
+      try{localStorage.setItem('sb_t',gToken);localStorage.setItem('sb_r',gRefresh);}catch(e){console.error('localStorage error:', e);}
       showApp();
     } else if(gIsSignUp&&d.id){
       showErr('確認メールを送信しました！');
     } else {
-      showErr(d.error_description||d.msg||d.error||'ログインに失敗しました');
+      const errorMessage = d.error_description || d.msg || d.error || 'ログインに失敗しました';
+      showErr(errorMessage);
+      console.error('Login/Signup failed:', errorMessage);
     }
   }).catch(function(e){
     btn.textContent=gIsSignUp?'登録する':'ログイン'; btn.disabled=false;
-    showErr('エラー: '+e.message);
+    const errorMessage = 'ネットワークエラーまたは予期せぬエラー: ' + e.message;
+    showErr(errorMessage);
+    console.error('Fetch error:', e);
   });
 }
 
