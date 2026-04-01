@@ -1360,9 +1360,7 @@ function loadGallery() {
         '<button class="fav-btn '+(p.is_favorite?'active':'')+'" data-id="'+p.id+'">❤️</button>'+
         '<div class="gallery-img-container">'+
         '<img class="gallery-img" src="'+imgUrl+'" loading="lazy" '+
-        'onload="this.style.opacity=1" style="opacity:0" '+
-        'onerror="this.onerror=null; this.src=\'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%231a1a24\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23a09890\' font-size=\'10\'%3E画像なし%3C/text%3E%3C/svg%3E\'; this.style.opacity=1;">'+
-        '</div>'+
+        'onload="this.style.opacity=1" style="opacity:0" '+        'onerror="this.onerror=null; this.src=\'\'; this.parentElement.innerHTML = \'<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background-color:#333;color:#fff;font-size:0.7em;padding:5px;">画像なし<br>URL:<br>' + imgUrl.substring(0, 50) + '...</div>\';">'+'</div>'+
         '<div class="gallery-info">'+
         '<div style="display:flex;align-items:center;justify-content:space-between">'+
         '<div class="gallery-score">'+p.score+'点</div>'+
@@ -1431,10 +1429,8 @@ function openDetail(id) {
   }
   var items=[{n:'明るさ',v:p.brightness},{n:'彩度',v:p.saturation},{n:'コントラスト',v:p.contrast},{n:'構図',v:p.composition},{n:'シャープ',v:p.sharpness}];
   var html = '<div class="gallery-img-container" style="border-radius:12px;margin-bottom:20px">'+
-    '<img class="modal-img" src="'+imgUrl+'" '+
-    'onload="this.style.opacity=1" style="opacity:0;transition:opacity 0.3s;width:100%;display:block" '+
-    'onerror="this.onerror=null;this.src=\'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%231a1a24\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23a09890\' font-size=\'10\'%3E画像なし%3C/text%3E%3C/svg%3E\';this.style.opacity=1;">'+
-    '</div>'+
+        '<img class="modal-img" src="'+imgUrl+'" '+
+        'onload="this.style.opacity=1" style="opacity:0;transition:opacity 0.3s;width:100%;display:bloc        'onerror="this.onerror=null;this.src=\'\'; this.parentElement.innerHTML = \'<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background-color:#333;color:#fff;font-size:0.8em;padding:10px;">画像なし<br>URL:<br>' + imgUrl.substring(0, 70) + '...</div>\';">'+ '</div>'+
     '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'+
     '<div style="font-family:\'Playfair Display\',serif;font-size:2rem;color:var(--accent)">'+p.score+'点</div>'+
     '<div><div style="font-weight:600;color:'+gr.color+'">'+gr.label+'</div><div style="font-size:0.8rem;color:var(--text2)">📅 '+fmtDate(p.created_at)+(p.location_name?' 📍'+p.location_name:'')+'</div></div>'+
