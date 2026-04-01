@@ -1501,7 +1501,7 @@ function showScore(s) {
   document.getElementById('score-breakdown').innerHTML=items.map(function(b){
     return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+s[b.k]+'%"></div></div><div class="score-item-val">'+s[b.k]+'点</div></div>';
   }).join('');
-  document.getElementById('advice-text').textContent=s.advice;
+  document.getElementById('advice-text').innerHTML = s.advice.replace(/\n/g, '<br>');
 }
 
 function resetUpload() {
@@ -1559,12 +1559,41 @@ window.onload = function() {
     openDetail(id);
   };
   try {
-    var t=localStorage.getItem('sb_t');
-    if(t) {
-      gToken=t; fetch(SB+'/auth/v1/user',{headers:{apikey:SK,'Authorization':'Bearer '+t}})
-        .then(function(r){return r.json();}).then(function(u){if(u&&u.id){gUser=u;showApp();}else{document.getElementById('auth-screen').style.display='flex';}});
+    var t = localStorage.getItem('sb_t');
+    var r = localStorage.getItem('sb_r');
+    if (t) {
+      gToken = t;
+      fetch(SB + '/auth/v1/user', { headers: { apikey: SK, 'Authorization': 'Bearer ' + t } })
+        .then(function(res) { return res.json(); })
+        .then(function(u) {
+          if (u && u.id) {
+            gUser = u;
+            showApp();
+          } else if (r) {
+            // トークンが期限切れの場合、リフレッシュを試みる
+            fetch(SB + '/auth/v1/token?grant_type=refresh_token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', apikey: SK },
+              body: JSON.stringify({ refresh_token: r })
+            }).then(function(res) { return res.json(); }).then(function(d) {
+              if (d.access_token) {
+                gToken = d.access_token; gRefresh = d.refresh_token || ''; gUser = d.user;
+                localStorage.setItem('sb_t', gToken); localStorage.setItem('sb_r', gRefresh);
+                showApp();
+              } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+              }
+            }).catch(function() { document.getElementById('auth-screen').style.display = 'flex'; });
+          } else {
+            document.getElementById('auth-screen').style.display = 'flex';
+          }
+        }).catch(function() { document.getElementById('auth-screen').style.display = 'flex'; });
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
     }
-  } catch(e) {}
+  } catch (e) {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
 };
 </script>
 </body>
