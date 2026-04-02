@@ -1661,8 +1661,23 @@ window.onload = function() {
   console.log("Supabase client initialized.", supabase);
 
   console.log("Attempting to assign doLogin to auth-btn");
-  document.getElementById('auth-btn').onclick = doLogin;
-  console.log("doLogin assigned to auth-btn");
+  const authBtnElement = document.getElementById(\'auth-btn\');
+  if (authBtnElement) {
+    console.log("auth-btn element found.", authBtnElement);
+    if (typeof doLogin === \'function\') {
+      console.log("doLogin function is defined.");
+      try {
+        authBtnElement.onclick = doLogin;
+        console.log("doLogin assigned to auth-btn successfully.");
+      } catch (e) {
+        console.error("Error assigning doLogin to auth-btn:", e);
+      }
+    } else {
+      console.error("doLogin function is NOT defined.");
+    }
+  } else {
+    console.error("auth-btn element NOT found.");
+  }
   document.getElementById('toggle-link').onclick = toggleMode;
   document.getElementById('user-avatar').onclick = doLogout;
   document.getElementById('nav-home').onclick = function(){goPage('home');};
