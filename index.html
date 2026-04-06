@@ -11,7 +11,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>console.log("Supabase object is defined:", typeof Supabase !== 'undefined');</script>
+    <script>
+      console.log("Supabase object is defined:", typeof Supabase !== 'undefined');
+      console.log("window.Supabase is defined:", typeof window.Supabase !== 'undefined');
+      console.log("window.createClient is defined:", typeof window.createClient !== 'undefined');
+      console.log("window.supabase is defined:", typeof window.supabase !== 'undefined');
+    </script>
 
 
 
