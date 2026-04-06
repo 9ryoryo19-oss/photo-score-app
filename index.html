@@ -1671,7 +1671,7 @@ window.onload = function() {
   console.log("Supabase Anon Key (SK):", SK);
   console.log("Attempting to initialize Supabase client.");
   try {
-    supabase = Supabase.createClient(SB, SK);
+    supabase = window.supabase.createClient(SB, SK);
     console.log("Supabase client initialized.", supabase);
   } catch (e) {
     console.error("Error initializing Supabase client:", e);
