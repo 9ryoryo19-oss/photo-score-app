@@ -14,6 +14,7 @@
 
 
 
+
 <style>
     :root {
       --bg: #0a0a0f;
@@ -1658,7 +1659,8 @@ function showAcademyModal(type) {
 window.onload = function() {
   console.log("window.onload started");
   // Supabaseクライアントの初期化
-  console.log("Supabase object defined before init:", typeof Supabase !== 'undefined');
+  console.log("Supabase URL (SB):", SB);
+  console.log("Supabase Anon Key (SK):", SK);
   console.log("Attempting to initialize Supabase client.");
   try {
     supabase = Supabase.createClient(SB, SK);
