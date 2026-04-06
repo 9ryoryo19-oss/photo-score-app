@@ -11,19 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      function waitForSupabase(callback) {
-        if (typeof Supabase !== 'undefined') {
-          callback();
-        } else {
-          setTimeout(() => waitForSupabase(callback), 100);
-        }
-      }
-      waitForSupabase(() => {
-        console.log("Supabase object is now available globally.");
-        // ここでSupabaseクライアントの初期化を行うことも検討
-      });
-    </script>
+
+
 
 <style>
     :root {
@@ -1669,15 +1658,14 @@ function showAcademyModal(type) {
 window.onload = function() {
   console.log("window.onload started");
   // Supabaseクライアントの初期化
-  waitForSupabase(() => {
-    console.log("Supabase object is available in window.onload. Attempting to initialize Supabase client.");
-    try {
-      supabase = Supabase.createClient(SB, SK);
-      console.log("Supabase client initialized.", supabase);
-    } catch (e) {
-      console.error("Error initializing Supabase client:", e);
-    }
-  });
+  console.log("Supabase object defined before init:", typeof Supabase !== 'undefined');
+  console.log("Attempting to initialize Supabase client.");
+  try {
+    supabase = Supabase.createClient(SB, SK);
+    console.log("Supabase client initialized.", supabase);
+  } catch (e) {
+    console.error("Error initializing Supabase client:", e);
+  }
 
   console.log("Attempting to assign doLogin to auth-btn");
   const authBtnElement = document.getElementById('auth-btn');
