@@ -11,16 +11,20 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>console.log("Supabase CDN loaded.");
-      let supabaseReadyInterval = setInterval(() => {
+    <script>
+      function waitForSupabase(callback) {
         if (typeof Supabase !== 'undefined') {
-          clearInterval(supabaseReadyInterval);
-          console.log("Supabase object available: true");
+          callback();
         } else {
-          console.log("Supabase object not yet available, waiting...");
+          setTimeout(() => waitForSupabase(callback), 100);
         }
-      }, 100); // Check every 100ms
+      }
+      waitForSupabase(() => {
+        console.log("Supabase object is now available globally.");
+        // ここでSupabaseクライアントの初期化を行うことも検討
+      });
     </script>
+
 <style>
     :root {
       --bg: #0a0a0f;
@@ -1665,21 +1669,15 @@ function showAcademyModal(type) {
 window.onload = function() {
   console.log("window.onload started");
   // Supabaseクライアントの初期化
-  // Supabaseオブジェクトが利用可能になるまで待機してから初期化
-  let initSupabaseInterval = setInterval(() => {
-    if (typeof Supabase !== 'undefined') {
-      clearInterval(initSupabaseInterval);
-      console.log("Supabase object exists: true. Attempting to initialize Supabase client.");
-      try {
-        supabase = Supabase.createClient(SB, SK);
-        console.log("Supabase client initialized.", supabase);
-      } catch (e) {
-        console.error("Error initializing Supabase client:", e);
-      }
-    } else {
-      console.log("Supabase object not yet available for initialization, waiting...");
+  waitForSupabase(() => {
+    console.log("Supabase object is available in window.onload. Attempting to initialize Supabase client.");
+    try {
+      supabase = Supabase.createClient(SB, SK);
+      console.log("Supabase client initialized.", supabase);
+    } catch (e) {
+      console.error("Error initializing Supabase client:", e);
     }
-  }, 100); // Check every 100ms
+  });
 
   console.log("Attempting to assign doLogin to auth-btn");
   const authBtnElement = document.getElementById('auth-btn');
