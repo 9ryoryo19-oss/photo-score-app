@@ -11,13 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      console.log("Supabase object is defined:", typeof Supabase !== 'undefined');
-      console.log("window.Supabase is defined:", typeof window.Supabase !== 'undefined');
-      console.log("window.createClient is defined:", typeof window.createClient !== 'undefined');
-      console.log("window.supabase.createClient is defined:", typeof window.supabase.createClient !== 'undefined');
-      console.log("window.supabase is defined:", typeof window.supabase !== 'undefined');
-    </script>
+
 
 
 
@@ -1667,6 +1661,7 @@ function showAcademyModal(type) {
 window.onload = function() {
   console.log("window.onload started");
   // Supabaseクライアントの初期化
+
   console.log("Supabase URL (SB):", SB);
   console.log("Supabase Anon Key (SK):", SK);
   console.log("Attempting to initialize Supabase client.");
@@ -1677,23 +1672,9 @@ window.onload = function() {
     console.error("Error initializing Supabase client:", e);
   }
 
-  console.log("Attempting to assign doLogin to auth-btn");
   const authBtnElement = document.getElementById('auth-btn');
   if (authBtnElement) {
-    console.log("auth-btn element found.", authBtnElement);
-    if (typeof doLogin === 'function') {
-      console.log("doLogin function is defined.");
-      try {
-        authBtnElement.onclick = doLogin;
-        console.log("doLogin assigned to auth-btn successfully.");
-      } catch (e) {
-        console.error("Error assigning doLogin to auth-btn:", e);
-      }
-    } else {
-      console.error("doLogin function is NOT defined.");
-    }
-  } else {
-    console.error("auth-btn element NOT found.");
+    authBtnElement.onclick = doLogin;
   }
   document.getElementById('toggle-link').onclick = toggleMode;
   document.getElementById('user-avatar').onclick = doLogout;
