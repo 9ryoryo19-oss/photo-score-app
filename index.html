@@ -11,10 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      console.log("--- Supabase CDN script loaded ---");
-      console.log("Supabase object after CDN load:", typeof window.supabase);
-    </script>
+
 
 
 
@@ -1662,6 +1659,7 @@ function showAcademyModal(type) {
   }
 }
 
+      console.log("--- Before window.onload script block ---");
 // 初期化
 window.onload = function() {
   console.log("window.onload started");
