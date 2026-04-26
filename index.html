@@ -3,21 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PhotoGrow - Pro AI Edition</title>
+<title>PhotoGrow</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- TensorFlow.js & MobileNet for AI Analysis -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-
-
-
-
-
 <style>
     :root {
       --bg: #0a0a0f;
@@ -220,14 +208,14 @@
       cursor: pointer;
       transition: color 0.2s;
       color: var(--text2);
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       font-weight: 500;
       gap: 4px;
       -webkit-tap-highlight-color: transparent;
     }
 
     .nav-item.active { color: var(--accent); }
-    .nav-icon { font-size: 1.3rem; }
+    .nav-icon { font-size: 1.4rem; }
 
     /* Pages */
     .page { display: none; padding: 20px; }
@@ -454,7 +442,7 @@
 
     .advice-section { margin-top: 16px; }
     .advice-title { font-size: 0.8rem; color: var(--text2); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    #advice-text, .advice-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); white-space: pre-line; }
+    .advice-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); }
 
     .btn-save {
       width: 100%;
@@ -486,1239 +474,1125 @@
       overflow: hidden;
       cursor: pointer;
       transition: transform 0.2s;
-      position: relative;
-      min-height: 180px;
     }
 
     .gallery-item:active { transform: scale(0.97); }
 
     .gallery-img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: var(--bg3);
-      display: block;
-      transition: opacity 0.3s;
-    }
-    .gallery-img-container {
-      width: 100%;
       aspect-ratio: 1;
-      position: relative;
-      overflow: hidden;
-      background: var(--bg3);
+      object-fit: cover;
     }
 
-    .gallery-img-placeholder {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text2);
-      font-size: 0.8rem;
-      text-align: center;
+    .gallery-info {
       padding: 10px;
-      box-sizing: border-box;
     }
 
-    .gallery-img-placeholder.error {
-      color: var(--danger);
-      border: 2px dashed var(--danger);
-      border-radius: var(--radius);
-    }
-
-    .gallery-img-placeholder .error-url {
-      font-size: 0.7rem;
-      word-break: break-all;
-      margin-top: 5px;
-    }
-
-    /* ===== ACADEMY ===== */
-    .academy-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .academy-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .academy-card:active { transform: scale(0.98); }
-
-    .academy-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--bg3);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
+    .gallery-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
       color: var(--accent);
     }
 
-    .academy-info h3 {
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-      color: var(--text);
-    }
-
-    .academy-info p {
-      font-size: 0.85rem;
+    .gallery-date {
+      font-size: 0.72rem;
       color: var(--text2);
+      margin-top: 2px;
     }
 
-    /* ===== MODAL ===== */
-    .modal-overlay {
+    .delete-btn {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .delete-btn:active { opacity: 1; }
+
+    /* Detail Modal */
+    .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
     }
 
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
+    .modal.open { display: flex; }
 
     .modal-content {
       background: var(--bg2);
-      border-radius: var(--radius);
-      padding: 24px;
-      width: 90%;
-      max-width: 500px;
-      transform: translateY(20px);
-      transition: transform 0.3s ease;
-      position: relative;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
     }
 
-    .modal-overlay.active .modal-content {
-      transform: translateY(0);
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-img {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      max-height: 250px;
+      object-fit: cover;
     }
 
     .modal-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
+      float: right;
       background: none;
       border: none;
-      font-size: 1.5rem;
       color: var(--text2);
-      cursor: pointer;
-    }
-
-    .modal-title {
-      font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
-      margin-bottom: 16px;
-      text-align: center;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
     }
 
-    .modal-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text2);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text2);
+    }
+
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 0.9rem;
+      color: var(--text);
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Rank banner */
+    .rank-banner {
+      background: linear-gradient(135deg, #1a1530, #0a0a0f);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .rank-icon { font-size: 2.5rem; }
+
+    .rank-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--gold);
+    }
+
+    .rank-desc { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+
+    .page-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
       color: var(--text);
     }
 
-    .modal-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin-top: 15px;
-    }
-
-    .modal-body p {
-      margin-bottom: 10px;
-    }
-
-    .modal-body ul {
-      list-style-type: disc;
-      margin-left: 20px;
-      margin-bottom: 10px;
-    }
-
-    .modal-body li {
-      margin-bottom: 5px;
-    }
-
-    /* Toast Notification */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      z-index: 1001;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .toast.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    /* Loading Overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
+    .sort-tabs {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1002;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
-    .loading-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .loading-spinner {
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top: 4px solid var(--accent);
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg3);
+    .sort-tab {
+      flex: 1;
+      padding: 10px;
       border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 10px;
+    .sort-tab.active {
+      background: var(--accent);
+      color: #0a0a0f;
+      border-color: var(--accent);
+      font-weight: 600;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text2);
-    }
-
-    /* Icons */
-    .icon {
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      stroke-width: 0;
-      stroke: currentColor;
-      fill: currentColor;
-    }
-
-    .icon-camera {
-      width: 1.1em;
-      height: 0.9em;
-    }
-
-    .icon-home {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-upload {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-image {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-book {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-user {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-star {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-award {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-x {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-info {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-alert-triangle {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-check-circle {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-edit {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-trash {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-log-out {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-plus {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
-    .icon-camera-off {
-      width: 1.1em;
-      height: 1.1em;
-    }
-
+    @keyframes pgDash{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-250}}
+    @keyframes pgRotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(180deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="2" y="10" width="32" height="22" rx="4" fill="none" stroke="#c8a96e" stroke-width="1.8"/>
+      <circle cx="18" cy="21" r="6" fill="none" stroke="#c8a96e" stroke-width="1.8"/>
+      <circle cx="18" cy="21" r="2.5" fill="#c8a96e" opacity="0.7"/>
+      <path d="M11 10 L13 6 H23 L25 10" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="29" cy="15" r="2" fill="#c8a96e"/>
+    </svg>
+    PhotoGrow
+  </div>
+  <div class="auth-tagline">風景写真で成長する、あなたの記録</div>
+  <div class="auth-card">
+    <div class="auth-title" id="auth-title">ログイン</div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="form-group" id="name-group" style="display:none">
+      <label>ニックネーム</label>
+      <input type="text" id="input-name" placeholder="あなたの名前">
+    </div>
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" id="input-email" placeholder="example@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="auth-btn">ログイン</button>
+    <div class="auth-switch" id="auth-switch">
+      アカウントがない方は <span id="toggle-link" style="color:var(--accent);cursor:pointer">新規登録</span>
+    </div>
+  </div>
+</div>
 
-
-  <!-- Auth Screen -->
-  <div id="auth-screen">
-    <div class="auth-logo">
-      <svg class="icon-camera" viewBox="0 0 24 24">
-        <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="app-header-logo">
+      <svg width="22" height="22" viewBox="0 0 36 36" fill="none" style="margin-right:6px;vertical-align:middle">
+        <rect x="2" y="10" width="32" height="22" rx="4" fill="none" stroke="#c8a96e" stroke-width="1.8"/>
+        <circle cx="18" cy="21" r="6" fill="none" stroke="#c8a96e" stroke-width="1.8"/>
+        <circle cx="18" cy="21" r="2.5" fill="#c8a96e" opacity="0.7"/>
+        <path d="M11 10 L13 6 H23 L25 10" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="29" cy="15" r="2" fill="#c8a96e"/>
       </svg>
       PhotoGrow
     </div>
-    <div class="auth-tagline">風景写真で成長する、あなたの記録</div>
-    <div class="auth-card">
-      <div class="auth-title" id="auth-title">ログイン</div>
-      <div class="auth-error" id="auth-error" style="display:none;"></div>
-      <div class="form-group" id="name-group" style="display:none">
-        <label>ニックネーム</label>
-        <input type="text" id="input-name" placeholder="あなたの名前">
+    <div class="user-avatar" id="user-avatar">?</div>
+  </header>
+
+  <div class="page active" id="page-home">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-value" id="stat-count">0</div><div class="stat-label">撮影枚数</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-avg">—</div><div class="stat-label">平均スコア</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-best">—</div><div class="stat-label">最高スコア</div></div>
+    </div>
+    <div class="rank-banner">
+      <div class="rank-icon" id="rank-icon">🌱</div>
+      <div><div class="rank-name" id="rank-name">ビギナー</div><div class="rank-desc" id="rank-desc">まずは1枚目を撮ってみよう！</div></div>
+    </div>
+    <div class="section-title">🏅 バッジ</div>
+    <div class="badges-row" id="badges-row"></div>
+    <div class="section-title">📈 スコア推移</div>
+    <div class="chart-card"><canvas id="score-chart" height="180"></canvas></div>
+  </div>
+
+  <div class="page" id="page-upload">
+    <div class="page-header">写真を採点する</div>
+    <div id="upload-area">
+      <div class="upload-btn-row">
+        <div class="upload-btn-card" id="btn-library">
+          <input type="file" id="file-lib" accept="image/*" style="display:none">
+          <div class="upload-icon">🖼️</div><div class="upload-text">写真ライブラリ</div>
+        </div>
+        <div class="upload-btn-card" id="btn-camera">
+          <input type="file" id="file-cam" accept="image/*" capture="environment" style="display:none">
+          <div class="upload-icon">📷</div><div class="upload-text">カメラで撮影</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label>メールアドレス</label>
-        <input type="email" id="input-email" placeholder="メールアドレス" autocomplete="email">
+    </div>
+    <div class="preview-container" id="preview-container">
+      <img id="preview-img" src="" alt="">
+      <button class="preview-remove" id="btn-remove">✕</button>
+    </div>
+    <div class="loading" id="scoring-loading"><div class="spinner"></div><div>採点中...</div></div>
+    <div class="score-result" id="score-result">
+      <div class="score-circle" id="score-circle"><div class="score-number" id="score-number">0</div></div>
+      <div class="score-grade" id="score-grade">—</div>
+      <div id="location-display" style="display:none;font-size:0.9rem;color:var(--accent);margin:8px 0;text-align:center;font-weight:500"></div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+      <div class="advice-section">
+        <div class="advice-title">💡 アドバイス</div>
+        <div class="advice-text" id="advice-text"></div>
       </div>
-      <div class="form-group">
-        <label>パスワード</label>
-        <input type="password" id="input-password" placeholder="パスワード（6文字以上）" autocomplete="current-password">
+      <div id="ai-advice-section" style="display:none;margin-top:16px;background:linear-gradient(135deg,#1a1530,#0a0a0f);border:1px solid #6b4fd8;border-radius:12px;padding:16px">
+        <div style="font-size:0.75rem;color:#9b7fd4;font-weight:600;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">✨ Gemini AI分析</div>
+        <div id="ai-advice-text" style="font-size:0.88rem;line-height:1.7;color:var(--text);white-space:pre-line"></div>
       </div>
-      <button class="btn-primary" id="auth-btn">ログイン</button>
-      <div class="auth-switch" id="auth-switch">
-        アカウントがない方は <span id="toggle-link" style="color:var(--accent);cursor:pointer">新規登録</span>
-      </div>
+      <button class="btn-save" id="btn-save" style="margin-top:20px">💾 成長記録に保存する</button>
     </div>
   </div>
 
-  <!-- Main App -->
-  <div id="app">
-    <!-- Header -->
-    <div class="app-header">
-      <div class="app-header-logo">PhotoGrow</div>
-      <div class="user-avatar" id="user-avatar"></div>
+  <div class="page" id="page-gallery">
+    <div class="page-header">ギャラリー</div>
+    <div class="sort-tabs">
+      <div class="sort-tab active" id="tab-latest">🕐 最新順</div>
+      <div class="sort-tab" id="tab-score">🏆 高得点順</div>
+      <div class="sort-tab" id="tab-fav">❤️ お気に入り</div>
     </div>
-
-    <!-- Pages -->
-    <div id="home-page" class="page active">
-      <div class="section-title">統計</div>
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-value" id="total-photos">0</div>
-          <div class="stat-label">写真</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="avg-score">0</div>
-          <div class="stat-label">平均スコア</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="best-score">0</div>
-          <div class="stat-label">最高スコア</div>
-        </div>
-      </div>
-
-      <div class="section-title">バッジ</div>
-      <div class="badges-row" id="badges-row">
-        <!-- Badges will be loaded here -->
-      </div>
-
-      <div class="section-title">スコア分布</div>
-      <div class="chart-card">
-        <canvas id="score-chart"></canvas>
-      </div>
-    </div>
-
-    <div id="upload-page" class="page">
-      <div class="section-title">写真をアップロード</div>
-      <div class="upload-area" id="upload-area">
-        <input type="file" id="file-input" accept="image/*" style="display: none;">
-        <div class="upload-icon">
-          <svg class="icon-plus" viewBox="0 0 24 24">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-        </div>
-        <div class="upload-text">タップして写真をアップロード</div>
-      </div>
-      <div class="preview-container" id="preview-container">
-        <img id="preview-image" src="#" alt="Image preview">
-        <button class="preview-remove" id="remove-image"><svg class="icon-x" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-      </div>
-      <button class="btn-primary" id="analyze-btn" style="display: none;">写真を分析</button>
-
-      <div class="score-result" id="score-result">
-        <div class="section-title">分析結果</div>
-        <div class="score-circle" id="score-circle" style="--score: 0;">
-          <div class="score-number" id="score-number">0</div>
-        </div>
-        <div class="score-grade" id="score-grade"></div>
-
-        <div class="score-breakdown" id="score-breakdown">
-          <div class="score-item">
-            <div class="score-item-name">構図</div>
-            <div class="score-bar-wrap"><div class="score-bar" id="composition-bar" style="width: 0%;"></div></div>
-            <div class="score-item-val" id="composition-val">0</div>
-          </div>
-          <div class="score-item">
-            <div class="score-bar-wrap"><div class="score-bar" id="lighting-bar" style="width: 0%;"></div></div>
-            <div class="score-item-val" id="lighting-val">0</div>
-          </div>
-          <div class="score-item">
-            <div class="score-bar-wrap"><div class="score-bar" id="color-bar" style="width: 0%;"></div></div>
-            <div class="score-item-val" id="color-val">0</div>
-          </div>
-          <div class="score-item">
-            <div class="score-bar-wrap"><div class="score-bar" id="subject-bar" style="width: 0%;"></div></div>
-            <div class="score-item-val" id="subject-val">0</div>
-          </div>
-        </div>
-
-        <div class="advice-section">
-          <div class="advice-title">AIアドバイス</div>
-          <div id="advice-text" class="advice-text"></div>
-        </div>
-        <button class="btn-save" id="save-photo-btn" style="display: none; margin-top: 20px;">写真を保存</button>
-      </div>
-    </div>
-
-    <div id="gallery-page" class="page">
-      <div class="section-title">ギャラリー</div>
-      <div class="gallery-grid" id="gallery-grid">
-        <!-- Gallery items will be loaded here -->
-      </div>
-    </div>
-
-    <div id="academy-page" class="page">
-      <div class="section-title">アカデミー</div>
-      <div class="academy-grid">
-        <div class="academy-card" onclick="showAcademyModal('composition')">
-          <div class="academy-icon"><svg class="icon-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
-          <div class="academy-info">
-            <h3>構図の基本</h3>
-            <p>写真の骨格を形成し、視覚的な魅力を高める上で不可欠です。基本的な構図を理解し、適切に適用することで、被写体を際立たせ、メッセージを効果的に伝えることができます。</p>
-          </div>
-        </div>
-        <div class="academy-card" onclick="showAcademyModal('lighting')">
-          <div class="academy-icon"><svg class="icon-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
-          <div class="academy-info">
-            <h3>光の捉え方</h3>
-            <p>自然光や人工光を効果的に使って、写真を魅力的に見せる方法。</p>
-          </div>
-        </div>
-        <div class="academy-card" onclick="showAcademyModal('color')">
-          <div class="academy-icon"><svg class="icon-image" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
-          <div class="academy-info">
-            <h3>色彩の心理学</h3>
-            <p>色は写真に感情やメッセージを込める強力なツールです。色の組み合わせや使い方によって、写真の雰囲気や見る人に与える印象が大きく変わります。</p>
-          </div>
-        </div>
-        <div class="academy-card" onclick="showAcademyModal('subject')">
-          <div class="academy-icon"><svg class="icon-user" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-          <div class="academy-info">
-            <h3>被写体の引き立て方</h3>
-            <p>被写体を写真の中で際立たせることは、見る人の注意を引き、写真の意図を明確に伝えるために重要です。様々なテクニックを駆使して、被写体の魅力を最大限に引き出しましょう。</p>
-          </div>
-        </div>
-      </div>
+    <div class="loading" id="gallery-loading"><div class="spinner"></div><div>読み込み中...</div></div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+    <div class="empty-state" id="gallery-empty" style="display:none">
+      <div class="empty-icon">🖼️</div><div>まだ写真がありません</div>
+      <div style="font-size:0.85rem;margin-top:8px">採点して保存してみよう！</div>
     </div>
   </div>
 
-  <!-- Modals -->
-  <div id="academy-modal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" id="modal-close"><svg class="icon-x" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-      <div class="modal-title" id="modal-title"></div>
-      <div class="modal-body" id="modal-body"></div>
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span>ホーム</div>
+    <div class="nav-item" id="nav-upload"><span class="nav-icon">📷</span>採点</div>
+    <div class="nav-item" id="nav-gallery"><span class="nav-icon">🖼️</span>ギャラリー</div>
+    <div class="nav-item" id="nav-challenge"><span class="nav-icon">🎯</span>チャレンジ</div>
+  </nav>
+</div>
+
+<!-- CHALLENGE PAGE -->
+<div class="page" id="page-challenge">
+  <div class="page-header">🎯 撮影チャレンジ</div>
+  <div id="challenge-card" style="background:var(--bg2);border:1px solid var(--gold);border-radius:var(--radius);padding:24px;margin-bottom:20px">
+    <div style="font-size:0.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">今日のミッション</div>
+    <div id="challenge-icon" style="font-size:3rem;margin-bottom:12px;text-align:center">📷</div>
+    <div id="challenge-title" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gold);text-align:center;margin-bottom:8px">ロード中...</div>
+    <div id="challenge-desc" style="font-size:0.9rem;color:var(--text2);text-align:center;line-height:1.6"></div>
+    <div style="margin-top:16px;background:var(--bg3);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:0.75rem;color:var(--text2);margin-bottom:4px">クリア条件</div>
+      <div id="challenge-condition" style="font-size:0.9rem;color:var(--accent);font-weight:600"></div>
     </div>
   </div>
+  <button id="btn-new-challenge" style="width:100%;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer;margin-bottom:24px">🔀 別のチャレンジを引く</button>
 
-  <div class="toast" id="toast"></div>
+  <div class="section-title">🏅 クリア履歴</div>
+  <div id="challenge-history" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div id="challenge-history-empty" style="text-align:center;color:var(--text2);padding:40px 20px;display:none">
+    <div style="font-size:2rem;margin-bottom:12px">🎯</div>
+    <div>まだチャレンジをクリアしていません</div>
+    <div style="font-size:0.85rem;margin-top:8px">写真を撮って挑戦してみよう！</div>
+  </div>
+</div>
 
-  <script>
-    console.log("--- Script execution started ---");
-    console.log("Global script block started.");
+<!-- MODAL -->
+<div class="modal" id="detail-modal">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <button class="modal-close" id="btn-modal-close">✕</button>
+    <img class="modal-img" id="modal-img" src="" alt="" onerror="this.onerror=null;this.style.background='var(--bg3)';">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent)" id="modal-score"></div>
+      <div><div style="font-weight:600" id="modal-grade"></div><div style="font-size:0.8rem;color:var(--text2)" id="modal-date"></div></div>
+    </div>
+    <div class="score-breakdown" id="modal-breakdown"></div>
+    <div class="advice-section"><div class="advice-title">💡 アドバイス</div><div class="advice-text" id="modal-advice"></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
 // ===== 設定 =====
 var SB = 'https://mhoxmehluacprsmepmxu.supabase.co';
 var SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob3htZWhsdWFjcHJzbWVwbXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTcxMzUsImV4cCI6MjA4OTgzMzEzNX0.0uKM-KW8KhrxKNO-hh1BEhOrmKtMlze-vSMQL-SEWJY';
-var CC = 'dlyq6q8v0';
-var CP = 'photogrow';
+var CC = 'duu4fajsb';
+var CP = 'photo_score_app';
+var GK = 'AIzaSyAZXaDCeKKbtVFOK4BDfqGT5PTFm27KY-M';
 
 // ===== 状態 =====
-let currentMode = 'login'; // 'login' or 'signup'
-let currentActivePage = 'home-page';
-let fileToUpload = null;
-let currentPhotoId = null;
-let supabase = null; // Supabaseクライアントを初期化
+var gUser=null, gToken='', gRefresh='';
+var gPendingImg=null, gPendingScore=null, gPendingLoc=null;
+var gSort='latest', gGallery={}, gChart=null, gIsSignUp=false;
 
-// ===== UI要素 =====
-const authScreen = document.getElementById('auth-screen');
-const appScreen = document.getElementById('app');
-const authTitle = document.getElementById('auth-title');
-const nameGroup = document.getElementById('name-group');
-const inputEmail = document.getElementById('input-email');
-const inputPassword = document.getElementById('input-password');
-const authBtn = document.getElementById('auth-btn');
-const toggleLink = document.getElementById('toggle-link');
-const authError = document.getElementById('auth-error');
-const userAvatar = document.getElementById('user-avatar');
-const totalPhotos = document.getElementById('total-photos');
-const avgScore = document.getElementById('avg-score');
-const bestScore = document.getElementById('best-score');
-const badgesRow = document.getElementById('badges-row');
-const scoreChartCtx = document.getElementById('score-chart').getContext('2d');
-const uploadArea = document.getElementById('upload-area');
-const fileInput = document.getElementById('file-input');
-const previewContainer = document.getElementById('preview-container');
-const previewImage = document.getElementById('preview-image');
-const removeImageBtn = document.getElementById('remove-image');
-const analyzeBtn = document.getElementById('analyze-btn');
-const scoreResult = document.getElementById('score-result');
-const scoreNumber = document.getElementById('score-number');
-const scoreGrade = document.getElementById('score-grade');
-const compositionBar = document.getElementById('composition-bar');
-const lightingBar = document.getElementById('lighting-bar');
-const colorBar = document.getElementById('color-bar');
-const subjectBar = document.getElementById('subject-bar');
-const compositionVal = document.getElementById('composition-val');
-const lightingVal = document.getElementById('lighting-val');
-const colorVal = document.getElementById('color-val');
-const subjectVal = document.getElementById('subject-val');
-const adviceText = document.getElementById('advice-text');
-const savePhotoBtn = document.getElementById('save-photo-btn');
-const galleryGrid = document.getElementById('gallery-grid');
-const academyModal = document.getElementById('academy-modal');
-const modalClose = document.getElementById('modal-close');
-const modalTitle = document.getElementById('modal-title');
-const modalBody = document.getElementById('modal-body');
-const toast = document.getElementById('toast');
-const loadingOverlay = document.querySelector('.loading-overlay');
-
-// Chart.jsインスタンス
-let scoreChart;
-
-// ===== 関数 =====
-
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3000);
+// ===== DB ヘルパー =====
+function sbGet(path) {
+  return fetch(SB+'/rest/v1/'+path, {headers:{apikey:SK,'Authorization':'Bearer '+gToken,'Content-Type':'application/json'}}).then(function(r){return r.json();});
+}
+function sbPost(path, body) {
+  return fetch(SB+'/rest/v1/'+path, {method:'POST',headers:{apikey:SK,'Authorization':'Bearer '+gToken,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(body)});
+}
+function sbPatch(path, body) {
+  return fetch(SB+'/rest/v1/'+path, {method:'PATCH',headers:{apikey:SK,'Authorization':'Bearer '+gToken,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(body)});
+}
+function sbDelete(path) {
+  return fetch(SB+'/rest/v1/'+path, {method:'DELETE',headers:{apikey:SK,'Authorization':'Bearer '+gToken,'Content-Type':'application/json'}});
 }
 
-function showLoading() {
-  if (loadingOverlay) {
-    loadingOverlay.classList.add('active');
-  }
+// ===== ユーティリティ =====
+function toast(msg) {
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+function fmtDate(iso) {
+  var d=new Date(iso);
+  return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+}
+function grade(s) {
+  if(s>=90) return {label:'🌟 マスタークラス',color:'#FFD700'};
+  if(s>=80) return {label:'✨ エキスパート',color:'#c8a96e'};
+  if(s>=70) return {label:'📸 アドバンスド',color:'#5cb88a'};
+  if(s>=60) return {label:'🎯 インターミディエイト',color:'#7eb8d8'};
+  if(s>=50) return {label:'📷 アマチュア',color:'#a09890'};
+  return {label:'🌱 ビギナー',color:'#888'};
+}
+function showErr(msg) {
+  var e=document.getElementById('auth-error');
+  if(!e) return;
+  e.textContent=msg;
+  e.style.cssText='display:block;background:rgba(224,112,112,0.15);border:1px solid #e07070;color:#e07070;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
 }
 
-function hideLoading() {
-  if (loadingOverlay) {
-    loadingOverlay.classList.remove('active');
-  }
-}
-
-function showAuthError(message) {
-  authError.textContent = message;
-  authError.style.display = 'block';
-}
-
-function hideAuthError() {
-  authError.textContent = '';
-  authError.style.display = 'none';
-}
-
-async function doLogin() {
-  console.log("doLogin function started");
-  hideAuthError();
-  showLoading();
-
-  const email = inputEmail.value;
-  const password = inputPassword.value;
-
-  if (!email || !password) {
-    showAuthError('メールアドレスとパスワードを入力してください');
-    hideLoading();
-    console.log("Validation failed: email or password missing");
-    return;
-  }
-  console.log("Email and password validation passed.");
-
-  try {
-    console.log("Attempting to sign in with Supabase...");
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    console.log("Supabase API response status:", error ? "Error" : "Success");
-    console.log("Supabase API response data:", data);
-
-    if (error) {
-      console.error("Login/Signup failed:", error.message);
-      showAuthError('ログインに失敗しました: ' + error.message);
-    } else {
-      console.log("Login successful!");
-      showToast('ログインしました！');
-      checkLoginStatus();
-    }
-  } catch (err) {
-    console.error("Fetch error:", err.message);
-    showAuthError('エラーが発生しました: ' + err.message);
-  }
-  hideLoading();
-}
-
-async function doSignup() {
-  hideAuthError();
-  showLoading();
-
-  const name = inputName.value;
-  const email = inputEmail.value;
-  const password = inputPassword.value;
-
-  if (!name || !email || !password) {
-    showAuthError('ニックネーム、メールアドレス、パスワードをすべて入力してください');
-    hideLoading();
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          name: name
-        }
-      }
-    });
-
-    if (error) {
-      showAuthError('新規登録に失敗しました: ' + error.message);
-    } else {
-      showToast('登録が完了しました！メールを確認してください。');
-      currentMode = 'login';
-      updateAuthScreen();
-    }
-  } catch (err) {
-    showAuthError('エラーが発生しました: ' + err.message);
-  }
-  hideLoading();
-}
-
+// ===== 認証 =====
 function toggleMode() {
-  currentMode = currentMode === 'login' ? 'signup' : 'login';
-  updateAuthScreen();
+  gIsSignUp=!gIsSignUp;
+  document.getElementById('auth-title').textContent=gIsSignUp?'新規登録':'ログイン';
+  document.getElementById('auth-btn').textContent=gIsSignUp?'登録する':'ログイン';
+  document.getElementById('toggle-link').textContent=gIsSignUp?'ログイン':'新規登録';
+  document.getElementById('auth-switch').firstChild.textContent=gIsSignUp?'すでにアカウントがある方は ':'アカウントがない方は ';
+  document.getElementById('name-group').style.display=gIsSignUp?'block':'none';
+  document.getElementById('auth-error').style.display='none';
 }
 
-function updateAuthScreen() {
-  if (currentMode === 'login') {
-    authTitle.textContent = 'ログイン';
-    nameGroup.style.display = 'none';
-    authBtn.textContent = 'ログイン';
-    authBtn.onclick = doLogin;
-    toggleLink.innerHTML = 'アカウントがない方は <span style="color:var(--accent);cursor:pointer">新規登録</span>';
-  } else {
-    authTitle.textContent = '新規登録';
-    nameGroup.style.display = 'block';
-    authBtn.textContent = '新規登録';
-    authBtn.onclick = doSignup;
-    toggleLink.innerHTML = 'アカウントをお持ちの方は <span style="color:var(--accent);cursor:pointer">ログイン</span>';
-  }
-  document.getElementById('toggle-link').onclick = toggleMode;
+function doLogin() {
+  var email=document.getElementById('input-email').value.trim();
+  var pw=document.getElementById('input-password').value;
+  var btn=document.getElementById('auth-btn');
+  document.getElementById('auth-error').style.display='none';
+  if(!email||!pw){showErr('メールアドレスとパスワードを入力してください');return;}
+  btn.textContent='処理中...'; btn.disabled=true;
+  fetch(SB+(gIsSignUp?'/auth/v1/signup':'/auth/v1/token?grant_type=password'),{
+    method:'POST',
+    headers:{'Content-Type':'application/json',apikey:SK},
+    body:JSON.stringify({email:email,password:pw})
+  }).then(function(r){return r.json();}).then(function(d){
+    btn.textContent=gIsSignUp?'登録する':'ログイン'; btn.disabled=false;
+    if(d.access_token){
+      gToken=d.access_token; gRefresh=d.refresh_token||''; gUser=d.user;
+      try{localStorage.setItem('sb_t',gToken);localStorage.setItem('sb_r',gRefresh);}catch(e){}
+      showApp();
+    } else if(gIsSignUp&&d.id){
+      var e=document.getElementById('auth-error');
+      e.textContent='確認メールを送信しました！';
+      e.style.cssText='display:block;background:rgba(92,184,138,0.15);border:1px solid #5cb88a;color:#5cb88a;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:16px';
+    } else {
+      showErr(d.error_description||d.msg||d.error||'ログインに失敗しました');
+    }
+  }).catch(function(e){
+    btn.textContent=gIsSignUp?'登録する':'ログイン'; btn.disabled=false;
+    showErr('エラー: '+e.message);
+  });
 }
 
-async function checkLoginStatus() {
-  showLoading();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  hideLoading();
-
-  if (user) {
-    authScreen.style.display = 'none';
-    appScreen.style.display = 'block';
-    userAvatar.textContent = user.user_metadata.name ? user.user_metadata.name.charAt(0) : user.email.charAt(0);
-    loadUserData(user.id);
-    goPage('home');
-  } else {
-    authScreen.style.display = 'flex';
-    appScreen.style.display = 'none';
-    updateAuthScreen();
-  }
+function doLogout() {
+  if(!confirm('ログアウトしますか？'))return;
+  fetch(SB+'/auth/v1/logout',{method:'POST',headers:{apikey:SK,'Authorization':'Bearer '+gToken}}).catch(function(){});
+  gToken=''; gRefresh=''; gUser=null;
+  try{localStorage.removeItem('sb_t');localStorage.removeItem('sb_r');}catch(e){}
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
 }
 
-async function doLogout() {
-  showLoading();
-  const { error } = await supabase.auth.signOut();
-  hideLoading();
-
-  if (!error) {
-    showToast('ログアウトしました');
-    checkLoginStatus();
-  } else {
-    showToast('ログアウトに失敗しました: ' + error.message);
-  }
+function showApp() {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  var em=gUser&&gUser.email?gUser.email:'';
+  document.getElementById('user-avatar').textContent=em?em[0].toUpperCase():'?';
+  loadStats(); loadGallery(); updateOldAdvice(); loadChallenge();
 }
 
-function goPage(pageId) {
-  document.getElementById(currentActivePage).classList.remove('active');
-  document.getElementById('nav-' + currentActivePage.replace('-page', '')).classList.remove('active');
-  
-  currentActivePage = pageId + '-page';
-  document.getElementById(currentActivePage).classList.add('active');
-  document.getElementById('nav-' + pageId).classList.add('active');
-
-  if (pageId === 'home') loadUserData(supabase.auth.getUser().id);
-  if (pageId === 'gallery') loadGallery();
+// ===== ナビ =====
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='gallery') loadGallery();
+  if(name==='home') loadStats();
+  if(name==='upload'&&!gPendingImg) resetUpload();
+  if(name==='challenge') loadChallenge();
 }
 
-async function loadUserData(userId) {
-  const { data, error } = await supabase
-    .from('photos')
-    .select('*')
-    .eq('user_id', userId);
+// ===== ホーム =====
+function loadStats() {
+  if(!gUser) return;
+  sbGet('photos?select=score,created_at&user_id=eq.'+gUser.id+'&order=created_at.asc').then(function(data){
+    if(!Array.isArray(data))return;
+    var n=data.length;
+    var avg=n?Math.round(data.reduce(function(s,p){return s+p.score;},0)/n):null;
+    var best=n?Math.max.apply(null,data.map(function(p){return p.score;})):null;
+    document.getElementById('stat-count').textContent=n;
+    document.getElementById('stat-avg').textContent=avg!==null?avg:'—';
+    document.getElementById('stat-best').textContent=best!==null?best:'—';
+    updateRank(avg||0,n); updateBadges(n,best||0,avg||0); updateChart(data);
+  }).catch(function(){});
+}
 
-  if (error) {
-    console.error('Error loading user data:', error.message);
-    return;
-  }
+function updateRank(avg,n) {
+  var i,nm,d;
+  if(!n){i='🌱';nm='ビギナー';d='まずは1枚目を撮ってみよう！';}
+  else if(avg<50){i='📷';nm='カメラ初心者';d='基礎をマスターしよう！';}
+  else if(avg<60){i='🎯';nm='アマチュア';d='もう少し上を目指そう';}
+  else if(avg<70){i='📸';nm='フォトグラファー';d='構図と光を意識しよう';}
+  else if(avg<80){i='✨';nm='エキスパート';d='素晴らしいセンスです！';}
+  else{i='🌟';nm='マスター';d='あなたはプロ級！';}
+  document.getElementById('rank-icon').textContent=i;
+  document.getElementById('rank-name').textContent=nm;
+  document.getElementById('rank-desc').textContent=d;
+}
 
-  const photos = data || [];
-  totalPhotos.textContent = photos.length;
-
-  if (photos.length > 0) {
-    const totalScore = photos.reduce((sum, photo) => sum + photo.score, 0);
-    avgScore.textContent = (totalScore / photos.length).toFixed(1);
-    bestScore.textContent = Math.max(...photos.map(photo => photo.score));
-  } else {
-    avgScore.textContent = '0';
-    bestScore.textContent = '0';
-  }
-
-  // バッジの表示
-  badgesRow.innerHTML = '';
-  const badges = [
-    { name: '初投稿', threshold: 1, icon: '<svg class="icon-award" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>' },
-    { name: '5枚達成', threshold: 5, icon: '<svg class="icon-award" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>' },
-    { name: '10枚達成', threshold: 10, icon: '<svg class="icon-award" viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>' },
-    { name: '平均80点', threshold: 80, type: 'avg_score', icon: '<svg class="icon-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>' },
+function updateBadges(n,best,avg) {
+  var defs=[
+    {i:'📸',nm:'初撮り',e:n>=1},{i:'🔟',nm:'10枚達成',e:n>=10},{i:'💯',nm:'100枚の旅',e:n>=100},
+    {i:'⭐',nm:'初60点',e:best>=60},{i:'🌟',nm:'80点超え',e:best>=80},{i:'👑',nm:'90点超え',e:best>=90},
+    {i:'📈',nm:'平均60以上',e:avg>=60},{i:'🏆',nm:'平均75以上',e:avg>=75}
   ];
-
-  badges.forEach(badge => {
-    const earned = badge.type === 'avg_score' ? parseFloat(avgScore.textContent) >= badge.threshold : photos.length >= badge.threshold;
-    const badgeEl = document.createElement('div');
-    badgeEl.className = `badge-item ${earned ? 'earned' : ''}`;
-    badgeEl.innerHTML = `
-      <div class="badge-icon">${badge.icon}</div>
-      <div class="badge-name">${badge.name}</div>
-    `;
-    badgesRow.appendChild(badgeEl);
-  });
-
-  // スコア分布チャート
-  const scoreCounts = Array(10).fill(0); // 0-9, 10-19, ..., 90-99
-  photos.forEach(photo => {
-    const bin = Math.floor(photo.score / 10);
-    if (bin >= 0 && bin < 10) {
-      scoreCounts[bin]++;
-    }
-  });
-
-  if (scoreChart) {
-    scoreChart.destroy();
-  }
-  scoreChart = new Chart(scoreChartCtx, {
-    type: 'bar',
-    data: {
-      labels: ['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-100'],
-      datasets: [{
-        label: '写真枚数',
-        data: scoreCounts,
-        backgroundColor: 'var(--accent)',
-        borderColor: 'var(--accent)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: 'var(--text2)' },
-          grid: { color: 'rgba(255,255,255,0.1)' }
-        },
-        x: {
-          ticks: { color: 'var(--text2)' },
-          grid: { color: 'rgba(255,255,255,0.1)' }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: { color: 'var(--text)' }
-        }
-      }
-    }
-  });
+  document.getElementById('badges-row').innerHTML=defs.map(function(b){
+    return '<div class="badge-item '+(b.e?'earned':'')+'"><div class="badge-icon" style="opacity:'+(b.e?1:0.3)+'">'+b.i+'</div><div class="badge-name">'+b.nm+'</div></div>';
+  }).join('');
 }
 
-// 画像アップロードと分析
-uploadArea.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    fileToUpload = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImage.src = e.target.result;
-      previewContainer.style.display = 'block';
-      analyzeBtn.style.display = 'block';
-      scoreResult.style.display = 'none';
+function updateChart(data) {
+  var ctx=document.getElementById('score-chart').getContext('2d');
+  if(gChart){gChart.destroy();gChart=null;}
+  if(!data.length)return;
+  gChart=new Chart(ctx,{type:'line',data:{
+    labels:data.map(function(_,i){return '#'+(i+1);}),
+    datasets:[{data:data.map(function(p){return p.score;}),borderColor:'#c8a96e',backgroundColor:'rgba(200,169,110,0.1)',borderWidth:2,pointBackgroundColor:'#c8a96e',pointRadius:4,tension:0.4,fill:true}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#a09890'},grid:{color:'#2a2a38'}},x:{ticks:{color:'#a09890'},grid:{display:false}}}}});
+}
+
+// ===== ギャラリー =====
+function setSort(s) {
+  gSort=s;
+  document.getElementById('tab-latest').classList.toggle('active',s==='latest');
+  document.getElementById('tab-score').classList.toggle('active',s==='score');
+  document.getElementById('tab-fav').classList.toggle('active',s==='fav');
+  loadGallery();
+}
+
+function loadGallery() {
+  if(!gUser) return;
+  document.getElementById('gallery-loading').style.display='block';
+  document.getElementById('gallery-grid').innerHTML='';
+  document.getElementById('gallery-empty').style.display='none';
+  var col=gSort==='score'?'score':'created_at';
+  var filter = gSort==='fav'
+    ? 'photos?select=*&user_id=eq.'+gUser.id+'&is_favorite=eq.true&order=created_at.desc'
+    : 'photos?select=*&user_id=eq.'+gUser.id+'&order='+col+'.desc';
+  sbGet(filter).then(function(data){
+    document.getElementById('gallery-loading').style.display='none';
+    if(!Array.isArray(data)||!data.length){document.getElementById('gallery-empty').style.display='block';return;}
+    gGallery={};
+    data.forEach(function(p){gGallery[p.id]=p;});
+    document.getElementById('gallery-grid').innerHTML=data.map(function(p){
+      return '<div class="gallery-item" data-id="'+p.id+'">'+
+        '<img class="gallery-img" src="'+p.image_url+'" loading="lazy" onerror="this.onerror=null;this.style.background=\'var(--bg3)\';this.style.minHeight=\'120px\';">'+
+        '<div class="gallery-info">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<div class="gallery-score">'+p.score+'点</div>'+
+        '<div style="display:flex;gap:6px">'+
+        '<button class="fav-btn" data-id="'+p.id+'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;padding:2px;opacity:'+(p.is_favorite?1:0.3)+'">'+( p.is_favorite?'❤️':'🤍')+'</button>'+
+        '<button class="delete-btn" data-id="'+p.id+'">🗑️</button>'+
+        '</div>'+
+        '</div>'+
+        '<div class="gallery-date">📅 '+fmtDate(p.created_at)+(p.location_name?' 📍'+p.location_name:'')+'</div>'+
+        '</div></div>';
+    }).join('');
+  }).catch(function(){document.getElementById('gallery-loading').style.display='none';});
+}
+
+function openDetail(id) {
+  var p=gGallery[id]; if(!p)return;
+  document.getElementById('modal-img').src=p.image_url;
+  document.getElementById('modal-score').textContent=p.score+'点';
+  var gr=grade(p.score);
+  document.getElementById('modal-grade').textContent=gr.label;
+  document.getElementById('modal-grade').style.color=gr.color;
+  document.getElementById('modal-date').textContent='📅 '+fmtDate(p.created_at)+(p.location_name?' 📍'+p.location_name:'');
+  var adv=document.getElementById('modal-advice');
+  adv.style.whiteSpace='pre-line'; adv.textContent=p.advice||'';
+  var items=[{n:'明るさ',v:p.brightness},{n:'彩度',v:p.saturation},{n:'コントラスト',v:p.contrast},{n:'構図',v:p.composition},{n:'シャープ',v:p.sharpness}];
+  document.getElementById('modal-breakdown').innerHTML=items.map(function(b){
+    return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+(b.v||0)+'%"></div></div><div class="score-item-val">'+(b.v||0)+'点</div></div>';
+  }).join('');
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function doDelete(id) {
+  if(!confirm('この写真を削除しますか？'))return;
+  sbDelete('photos?id=eq.'+id+'&user_id=eq.'+gUser.id).then(function(){
+    toast('🗑️ 削除しました'); delete gGallery[id]; loadStats(); loadGallery();
+  }).catch(function(){toast('削除に失敗しました');});
+}
+
+// ===== 採点エンジン =====
+function analyzeAndScore(imageEl) {
+  return new Promise(function(resolve) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var MAX = 200;
+    var scale = Math.min(MAX / imageEl.naturalWidth, MAX / imageEl.naturalHeight, 1);
+    canvas.width = imageEl.naturalWidth * scale;
+    canvas.height = imageEl.naturalHeight * scale;
+    ctx.drawImage(imageEl, 0, 0, canvas.width, canvas.height);
+
+    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var pixels = data.length / 4;
+
+    var rSum=0, gSum=0, bSum=0;
+    var brightnessValues = [];
+    var satValues = [];
+    var contrastData = [];
+
+    for (let i = 0; i < data.length; i += 4) {
+      var r = data[i], g = data[i+1], b = data[i+2];
+      rSum += r; gSum += g; bSum += b;
+
+      var max = Math.max(r,g,b), min = Math.min(r,g,b);
+      var brightness = (max + min) / 2 / 255;
+      brightnessValues.push(brightness);
+
+      var sat = max === 0 ? 0 : (max - min) / max;
+      satValues.push(sat);
+      contrastData.push((r + g + b) / 3);
+    }
+
+    var avgBrightness = brightnessValues.reduce(function(a,b){return a+b;},0) / pixels;
+    var brightScore = Math.round(100 - Math.abs(avgBrightness - 0.5) * 160);
+
+    var avgSat = satValues.reduce(function(a,b){return a+b;},0) / pixels;
+    var satScore = Math.round(Math.min(avgSat * 180, 100));
+
+    var meanContrast = contrastData.reduce(function(a,b){return a+b;},0) / pixels;
+    var variance = contrastData.reduce(function(a,b){return a + Math.pow(b-meanContrast, 2);}, 0) / pixels;
+    var contrastScore = Math.round(Math.min(Math.sqrt(variance) / 60 * 100, 100));
+
+    var aspect = imageEl.naturalWidth / imageEl.naturalHeight;
+    var idealAspects = [1, 4/3, 3/2, 16/9];
+    var aspectDiff = Math.min.apply(null, idealAspects.map(function(a){return Math.abs(aspect - a);}));
+    var compositionScore = Math.round(Math.max(100 - aspectDiff * 80, 40));
+
+    var edgeSum = 0;
+    for (let y = 1; y < canvas.height - 1; y++) {
+      for (let x = 1; x < canvas.width - 1; x++) {
+        var curr = contrastData[y * canvas.width + x];
+        var right = contrastData[y * canvas.width + x + 1];
+        var down = contrastData[(y+1) * canvas.width + x];
+        edgeSum += Math.abs(curr - right) + Math.abs(curr - down);
+      }
+    }
+    var avgEdge = edgeSum / (canvas.width * canvas.height);
+    var sharpnessScore = Math.round(Math.min(avgEdge / 15 * 100, 100));
+
+    var total = Math.round(
+      brightScore * 0.25 +
+      satScore * 0.20 +
+      contrastScore * 0.20 +
+      compositionScore * 0.20 +
+      sharpnessScore * 0.15
+    );
+
+    var scores = {
+      total: Math.max(20, Math.min(total, 100)),
+      brightness: Math.max(20, brightScore),
+      saturation: Math.max(20, satScore),
+      contrast: Math.max(20, contrastScore),
+      composition: Math.max(20, compositionScore),
+      sharpness: Math.max(20, sharpnessScore),
     };
-    reader.readAsDataURL(file);
-  }
-});
 
-removeImageBtn.addEventListener('click', () => {
-  fileToUpload = null;
-  previewImage.src = '#';
-  previewContainer.style.display = 'none';
-  analyzeBtn.style.display = 'none';
-  scoreResult.style.display = 'none';
-  fileInput.value = ''; // Clear the file input
-});
+    var advices = [];
 
-analyzeBtn.addEventListener('click', analyzePhoto);
+    if (scores.brightness < 35) advices.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）やゴールデンアワーを狙うか、露出補正を+1〜2段上げてください。');
+    else if (scores.brightness < 50) advices.push('【明るさ：不足】露出が足りていません。ISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。');
+    else if (scores.brightness > 88) advices.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。');
+    else if (scores.brightness > 75) advices.push('【明るさ：やや明るい】少し露出オーバーです。-0.3〜-0.7段絞ることで、空や雲のディテールを保持できます。');
+    else advices.push('【明るさ：良好】露出は適切です。光の方向性（順光・逆光・サイド光）を意識すると立体感が増します。');
 
-async function analyzePhoto() {
-  if (!fileToUpload) return;
+    if (scores.saturation < 25) advices.push('【彩度：非常に低い】色味がほぼない状態です。晴天の青空や夕焼けを背景に撮影しましょう。');
+    else if (scores.saturation < 45) advices.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選びましょう。');
+    else if (scores.saturation > 80) advices.push('【彩度：鮮やか】色彩が豊かで視線を引きます。不自然な過彩度にならないよう注意を。');
+    else advices.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを合わせるとさらに自然な発色になります。');
 
-  showLoading();
-  analyzeBtn.disabled = true;
+    if (scores.contrast < 30) advices.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。トーンカーブでS字カーブをかけましょう。');
+    else if (scores.contrast < 50) advices.push('【コントラスト：不足】明暗差が少なく、立体感に欠けます。サイド光を意識した構図にしましょう。');
+    else if (scores.contrast > 80) advices.push('【コントラスト：強い】ダイナミックな仕上がりです。暗部が潰れていないか確認を。');
+    else advices.push('【コントラスト：良好】明暗のバランスが取れています。光の角度を変えて質感を出してみましょう。');
 
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-    const base64Image = reader.result.split(',')[1];
-    
-    try {
-      // Cloudinaryにアップロード
-      const formData = new FormData();
-      formData.append('file', `data:${fileToUpload.type};base64,${base64Image}`);
-      formData.append('upload_preset', CP);
+    if (scores.sharpness < 30) advices.push('【シャープネス：深刻】明らかにブレています。三脚必須です。セルフタイマーでシャッターを切りましょう。');
+    else if (scores.sharpness < 50) advices.push('【シャープネス：不足】ピントが甘いか手ブレがあります。iPhoneでは画面タップでピント合わせを確認してください。');
+    else if (scores.sharpness > 75) advices.push('【シャープネス：優秀】くっきりと解像しています。前景と背景のボケも意識してみましょう。');
+    else advices.push('【シャープネス：良好】ピントは合っています。被写界深度のコントロールを意識しましょう。');
 
-      const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CC}/image/upload`, {
-        method: 'POST',
-        body: formData
-      });
+    if (scores.total >= 85) advices.push('【総合】プロレベルに近い仕上がりです。SNSや作品展示にも十分通用します。');
+    else if (scores.total >= 70) advices.push('【総合】上級アマチュアレベルです。弱点の項目を集中して改善すれば、大きくスコアが上がります。');
+    else if (scores.total >= 55) advices.push('【総合】中級者レベルです。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
+    else if (scores.total >= 40) advices.push('【総合】初級者レベルです。三分割法を意識した構図から始めましょう。');
+    else advices.push('【総合】基礎から見直しが必要です。まずは明るく・ブレない写真を撮ることを目標にしてください。');
 
-      if (!cloudinaryResponse.ok) {
-        throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.statusText}`);
+    scores.advice = advices.join('\n\n');
+    resolve(scores);
+  });
+}
+
+// EXIF GPS読み取り
+function readExifGPS(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var view = new DataView(e.target.result);
+        if (view.getUint16(0) !== 0xFFD8) { resolve(null); return; }
+        var offset = 2, len = view.byteLength;
+        while (offset < len) {
+          if (view.getUint16(offset) === 0xFFE1) {
+            var exifLen = view.getUint16(offset + 2);
+            var exif = new DataView(e.target.result, offset + 4, exifLen - 2);
+            var exifStr = '';
+            for (var i = 0; i < 4; i++) exifStr += String.fromCharCode(exif.getUint8(i));
+            if (exifStr !== 'Exif') { resolve(null); return; }
+            var le = exif.getUint16(6) === 0x4949;
+            var ifdOffset = exif.getUint32(10, le) + 6;
+            var entries = exif.getUint16(ifdOffset, le);
+            var gpsOffset = null;
+            for (var j = 0; j < entries; j++) {
+              var tag = exif.getUint16(ifdOffset + 2 + j * 12, le);
+              if (tag === 0x8825) { gpsOffset = exif.getUint32(ifdOffset + 2 + j * 12 + 8, le) + 6; break; }
+            }
+            if (!gpsOffset) { resolve(null); return; }
+            var gpsEntries = exif.getUint16(gpsOffset, le);
+            var lat = null, lon = null, latRef = 'N', lonRef = 'E';
+            for (var k = 0; k < gpsEntries; k++) {
+              var gpsTag = exif.getUint16(gpsOffset + 2 + k * 12, le);
+              var gpsValOffset = gpsOffset + 2 + k * 12 + 8;
+              if (gpsTag === 1) latRef = String.fromCharCode(exif.getUint8(gpsValOffset));
+              if (gpsTag === 3) lonRef = String.fromCharCode(exif.getUint8(gpsValOffset));
+              if (gpsTag === 2 || gpsTag === 4) {
+                var voff = exif.getUint32(gpsValOffset, le) + 6;
+                var d = exif.getUint32(voff, le) / exif.getUint32(voff + 4, le);
+                var m = exif.getUint32(voff + 8, le) / exif.getUint32(voff + 12, le);
+                var s2 = exif.getUint32(voff + 16, le) / exif.getUint32(voff + 20, le);
+                var deg = d + m / 60 + s2 / 3600;
+                if (gpsTag === 2) lat = deg;
+                else lon = deg;
+              }
+            }
+            if (lat !== null && lon !== null) {
+              if (latRef === 'S') lat = -lat;
+              if (lonRef === 'W') lon = -lon;
+              resolve({lat: lat, lon: lon});
+            } else { resolve(null); }
+            return;
+          }
+          offset += 2 + view.getUint16(offset + 2);
+        }
+        resolve(null);
+      } catch(e) { resolve(null); }
+    };
+    reader.readAsArrayBuffer(file.slice(0, 65536));
+  });
+}
+
+// 緯度経度から地名を取得
+function getLocationName(lat, lon) {
+  return fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=ja', {
+    headers: { 'User-Agent': 'PhotoGrow/1.0' }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d || !d.address) return null;
+    var a = d.address;
+    return a.city || a.town || a.village || a.county || a.state || d.display_name || null;
+  }).catch(function() { return null; });
+}
+
+function processFile(file) {
+  gPendingLoc=null;
+  readExifGPS(file).then(function(gps){
+    if(gps) return getLocationName(gps.lat,gps.lon).then(function(name){
+      if(name){
+        gPendingLoc=name;
+        var el=document.getElementById('location-display');
+        if(el){el.textContent='📍 '+name;el.style.display='block';}
       }
-      const cloudinaryData = await cloudinaryResponse.json();
-      const imageUrl = cloudinaryData.secure_url;
-
-      // AI分析（モックアップ）
-      // 実際にはここでAIモデルを呼び出し、スコアとアドバイスを取得
-      const mockScores = {
-        composition: Math.floor(Math.random() * 40) + 60, // 60-99
-        lighting: Math.floor(Math.random() * 40) + 60,
-        color: Math.floor(Math.random() * 40) + 60,
-        subject: Math.floor(Math.random() * 40) + 60,
-      };
-      const overallScore = Math.floor((mockScores.composition + mockScores.lighting + mockScores.color + mockScores.subject) / 4);
-
-      const mockAdvice = `この写真は素晴らしい構図と光の使い方が特徴です。特に、${Object.keys(mockScores).reduce((a, b) => mockScores[a] > mockScores[b] ? a : b)}の点が非常に優れています。\n\n改善点としては、${Object.keys(mockScores).reduce((a, b) => mockScores[a] < mockScores[b] ? a : b)}を意識すると、さらにプロフェッショナルな仕上がりになるでしょう。例えば、〇〇を試してみてください。`;
-
-      // 結果を表示
-      scoreNumber.textContent = overallScore;
-      scoreCircle.style.setProperty('--score', overallScore);
-      scoreGrade.textContent = getGrade(overallScore);
-
-      compositionBar.style.width = `${mockScores.composition}%`;
-      lightingBar.style.width = `${mockScores.lighting}%`;
-      colorBar.style.width = `${mockScores.color}%`;
-      subjectBar.style.width = `${mockScores.subject}%`;
-
-      compositionVal.textContent = mockScores.composition;
-      lightingVal.textContent = mockScores.lighting;
-      colorVal.textContent = mockScores.color;
-      subjectVal.textContent = mockScores.subject;
-
-      adviceText.textContent = mockAdvice;
-      scoreResult.style.display = 'block';
-      savePhotoBtn.style.display = 'block';
-
-      // 保存ボタンに現在の分析結果を紐付け
-      savePhotoBtn.onclick = () => savePhotoToGallery(imageUrl, overallScore, mockScores, mockAdvice);
-
-    } catch (error) {
-      console.error('Photo analysis failed:', error);
-      showToast('写真の分析に失敗しました: ' + error.message);
-    } finally {
-      hideLoading();
-      analyzeBtn.disabled = false;
-    }
-  };
-  reader.readAsDataURL(fileToUpload);
-}
-
-function getGrade(score) {
-  if (score >= 90) return 'S (素晴らしい！)';
-  if (score >= 80) return 'A (非常に良い)';
-  if (score >= 70) return 'B (良い)';
-  if (score >= 60) return 'C (平均的)';
-  return 'D (改善の余地あり)';
-}
-
-async function savePhotoToGallery(imageUrl, overallScore, scores, advice) {
-  showLoading();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    showToast('ログインしてください');
-    hideLoading();
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('photos')
-      .insert([
-        {
-          user_id: user.id,
-          image_url: imageUrl,
-          score: overallScore,
-          composition_score: scores.composition,
-          lighting_score: scores.lighting,
-          color_score: scores.color,
-          subject_score: scores.subject,
-          ai_advice: advice,
-        },
-      ]);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    showToast('写真をギャラリーに保存しました！');
-    savePhotoBtn.style.display = 'none';
-    loadUserData(user.id); // ユーザーデータを更新
-  } catch (error) {
-    console.error('Error saving photo:', error.message);
-    showToast('写真の保存に失敗しました: ' + error.message);
-  } finally {
-    hideLoading();
-  }
-}
-
-async function loadGallery() {
-  showLoading();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    showToast('ログインしてください');
-    hideLoading();
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from('photos')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error loading gallery:', error.message);
-    showToast('ギャラリーの読み込みに失敗しました: ' + error.message);
-    hideLoading();
-    return;
-  }
-
-  galleryGrid.innerHTML = '';
-  if (data && data.length > 0) {
-    data.forEach(photo => {
-      const galleryItem = document.createElement('div');
-      galleryItem.className = 'gallery-item';
-      galleryItem.innerHTML = `
-        <div class="gallery-img-container">
-          <img src="${photo.image_url}" alt="Analyzed Photo" class="gallery-img" 
-               onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'><rect width=\'200\' height=\'200\' fill=\'%231a1a24\'/><text x=\'100\' y=\'90\' font-family=\'sans-serif\' font-size=\'20\' fill=\'%23a09890\' text-anchor=\'middle\'>画像なし</text><text x=\'100\' y=\'120\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23a09890\' text-anchor=\'middle\'>${photo.image_url.substring(0, 30)}...</text></svg>'; this.classList.add('error');">
-        </div>
-      `;
-      galleryItem.onclick = () => showPhotoDetailModal(photo);
-      galleryGrid.appendChild(galleryItem);
     });
-  } else {
-    galleryGrid.innerHTML = '<p style="text-align: center; color: var(--text2);">まだ写真がありません。最初の写真をアップロードしましょう！</p>';
-  }
-  hideLoading();
+  }).catch(function(){});
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    gPendingImg=ev.target.result;
+    var img=document.getElementById('preview-img');
+    img.src=gPendingImg;
+    document.getElementById('preview-container').style.display='block';
+    document.getElementById('upload-area').style.display='none';
+    document.getElementById('score-result').style.display='none';
+    img.onload=function(){
+      document.getElementById('scoring-loading').style.display='block';
+      analyzeAndScore(img).then(function(s){
+        gPendingScore=s; showScore(s);
+        checkChallengeCompletion(s);
+        document.getElementById('scoring-loading').style.display='none';
+        // Gemini AI採点
+        var aiSec = document.getElementById('ai-advice-section');
+        var aiTxt = document.getElementById('ai-advice-text');
+        if (aiSec && aiTxt) { aiSec.style.display='block'; aiTxt.textContent='🤖 AIが写真を分析中...'; aiTxt.style.color='var(--text2)'; }
+        getAIAdvice(gPendingImg, s).then(function(aiText) {
+          if (aiSec && aiTxt) {
+            if (aiText) { aiTxt.textContent=aiText; aiTxt.style.color='var(--text)'; window._aiAdvice=aiText; }
+            else { aiSec.style.display='none'; }
+          }
+        });
+      }).catch(function(e){
+        toast('採点エラー: '+e.message);
+        document.getElementById('scoring-loading').style.display='none';
+      });
+    };
+  };
+  reader.readAsDataURL(file);
 }
 
-function showPhotoDetailModal(photo) {
-  modalTitle.textContent = `スコア: ${photo.score}`;
-  modalBody.innerHTML = `
-    <img src="${photo.image_url}" alt="Analyzed Photo">
-    <p><strong>構図:</strong> ${photo.composition_score}</p>
-    <p><strong>光:</strong> ${photo.lighting_score}</p>
-    <p><strong>色:</strong> ${photo.color_score}</p>
-    <p><strong>被写体:</strong> ${photo.subject_score}</p>
-    <p><strong>AIアドバイス:</strong></p>
-    <p class="advice-text">${photo.ai_advice}</p>
-    <button class="btn-primary" style="background: var(--danger); margin-top: 20px;" onclick="deletePhoto('${photo.id}')">写真を削除</button>
-  `;
-  academyModal.classList.add('active');
+
+// ===== Gemini AI採点 =====
+function getAIAdvice(imageDataUrl, scores) {
+  var base64 = imageDataUrl.split(',')[1];
+  var mimeType = imageDataUrl.split(';')[0].split(':')[1];
+  var prompt = 'この風景写真の採点結果です。\n' +
+    '総合: ' + scores.total + '点、明るさ: ' + scores.brightness + '点、彩度: ' + scores.saturation + '点、' +
+    'コントラスト: ' + scores.contrast + '点、構図: ' + scores.composition + '点、シャープネス: ' + scores.sharpness + '点\n\n' +
+    'プロ写真家として日本語で以下の形式でアドバイスしてください（各項目1〜2文）:\n' +
+    '【AI総評】\n【良い点】\n【改善点】\n【次回の提案】';
+  return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GK, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contents: [{parts: [{text: prompt}, {inline_data: {mime_type: mimeType, data: base64}}]}],
+      generationConfig: {maxOutputTokens: 400, temperature: 0.7}
+    })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.candidates && d.candidates[0] && d.candidates[0].content) {
+      return d.candidates[0].content.parts[0].text;
+    }
+    return null;
+  }).catch(function() { return null; });
 }
 
-async function deletePhoto(photoId) {
-  if (!confirm('本当にこの写真を削除しますか？')) return;
-
-  showLoading();
-  const { error } = await supabase
-    .from('photos')
-    .delete()
-    .eq('id', photoId);
-
-  if (error) {
-    console.error('Error deleting photo:', error.message);
-    showToast('写真の削除に失敗しました: ' + error.message);
-  } else {
-    showToast('写真を削除しました！');
-    academyModal.classList.remove('active');
-    loadGallery();
-    loadUserData(supabase.auth.getUser().id); // ユーザーデータを更新
-  }
-  hideLoading();
+function showScore(s) {
+  document.getElementById('score-result').style.display='block';
+  document.getElementById('score-circle').style.setProperty('--score',s.total);
+  document.getElementById('score-number').textContent=s.total;
+  var gr=grade(s.total);
+  document.getElementById('score-grade').textContent=gr.label;
+  document.getElementById('score-grade').style.color=gr.color;
+  var items=[{n:'明るさ',k:'brightness'},{n:'彩度',k:'saturation'},{n:'コントラスト',k:'contrast'},{n:'構図',k:'composition'},{n:'シャープ',k:'sharpness'}];
+  document.getElementById('score-breakdown').innerHTML=items.map(function(b){
+    return '<div class="score-item"><div class="score-item-name">'+b.n+'</div><div class="score-bar-wrap"><div class="score-bar" style="width:'+s[b.k]+'%"></div></div><div class="score-item-val">'+s[b.k]+'点</div></div>';
+  }).join('');
+  var adv=document.getElementById('advice-text');
+  adv.style.whiteSpace='pre-line'; adv.textContent=s.advice;
 }
 
-modalClose.addEventListener('click', () => {
-  academyModal.classList.remove('active');
-});
-
-// モーダル外クリックで閉じる
-academyModal.addEventListener('click', (e) => {
-  if (e.target === academyModal) {
-    academyModal.classList.remove('active');
-  }
-});
-
-const academyContent = {
-  composition: {
-    title: '構図の基本',
-    body: `
-      <p>構図は写真の骨格を形成し、視覚的な魅力を高める上で不可欠です。基本的な構図を理解し、適切に適用することで、被写体を際立たせ、メッセージを効果的に伝えることができます。</p>
-      <img src="https://res.cloudinary.com/dlyq6q8v0/image/upload/v1700000000/photogrow/composition_rule_of_thirds.jpg" alt="三分割法">
-      <h3>三分割法</h3>
-      <p>画面を縦横に三分割する線を引き、その交点や線上に主要な被写体を配置する技法です。バランスの取れた、安定感のある構図を作り出します。</p>
-      <h3>日の丸構図</h3>
-      <p>被写体を画面の中央に配置するシンプルな構図です。被写体を強調したい場合や、力強い印象を与えたい場合に効果的です。</p>
-      <h3>対角線構図</h3>
-      <p>画面を斜めに横切る線を利用して、奥行きや動きを表現する構図です。視線を誘導し、ダイナミックな印象を与えます。</p>
-      <h3>シンメトリー構図</h3>
-      <p>左右対称、上下対称など、対称性を利用した構図です。安定感や秩序、美しさを表現するのに適しています。</p>
-      <h3>フレーミング</h3>
-      <p>前景の要素（窓、ドア、木の枝など）を使って、主要な被写体を額縁のように囲む構図です。被写体への注目度を高め、奥行き感を演出します。</p>
-    `
-  },
-  lighting: {
-    title: '光の捉え方',
-    body: `
-      <p>光は写真の質を決定づける最も重要な要素の一つです。光の方向、質、色温度を理解し、コントロールすることで、写真に深みと感情を与えることができます。</p>
-      <img src="https://res.cloudinary.com/dlyq6q8v0/image/upload/v1700000000/photogrow/lighting_golden_hour.jpg" alt="ゴールデンアワー">
-      <h3>ゴールデンアワー</h3>
-      <p>日の出直後と日没直前の時間帯で、柔らかく温かい光が特徴です。被写体を美しく照らし、ドラマチックな雰囲気を作り出します。</p>
-      <h3>ブルーアワー</h3>
-      <p>日没後、空が深い青色に染まる時間帯です。幻想的でクールな雰囲気の写真を撮るのに適しています。</p>
-      <h3>逆光</h3>
-      <p>被写体の後ろから光が当たる状態です。被写体の輪郭を強調したり、シルエットにすることで、印象的な写真になります。フレアやゴーストにも注意しましょう。</p>
-      <h3>サイド光</h3>
-      <p>被写体の横から光が当たる状態です。影が強調され、被写体に立体感と質感を与えます。</p>
-      <h3>曇りの日の光</h3>
-      <p>雲が自然なディフューザーとなり、柔らかく均一な光を作り出します。ポートレートや花などの撮影に適しており、影が少なく、色の再現性が高いのが特徴です。</p>
-    `
-  },
-  color: {
-    title: '色彩の心理学',
-    body: `
-      <p>色は写真に感情やメッセージを込める強力なツールです。色の組み合わせや使い方によって、写真の雰囲気や見る人に与える印象が大きく変わります。</p>
-      <img src="https://res.cloudinary.com/dlyq6q8v0/image/upload/v1700000000/photogrow/color_complementary.jpg" alt="補色">
-      <h3>補色</h3>
-      <p>色相環で反対側に位置する色同士（例: 赤と緑、青とオレンジ）を組み合わせることで、互いの色を引き立て合い、鮮やかでダイナミックな印象を与えます。ただし、使いすぎると目がチカチカすることもあるため注意が必要です。</p>
-      <h3>類似色</h3>
-      <p>色相環で隣接する色同士（例: 青と緑、赤とオレンジ）を組み合わせることで、調和が取れて落ち着いた印象を与えます。自然な風景写真などでよく用いられます。</p>
-      <h3>暖色と寒色</h3>
-      <p>赤、オレンジ、黄色などの暖色は、情熱や活気、温かさを表現します。青、緑、紫などの寒色は、冷静さ、落ち着き、涼しさを表現します。これらの色を効果的に使い分けることで、写真の感情的な深みを増すことができます。</p>
-      <h3>モノクローム</h3>
-      <p>色情報を排除し、光と影、形、質感に焦点を当てることで、力強く、時代を超越した印象を与えます。感情やドラマを強調するのに非常に効果的です。</p>
-    `
-  },
-  subject: {
-    title: '被写体の引き立て方',
-    body: `
-      <p>被写体を写真の中で際立たせることは、見る人の注意を引き、写真の意図を明確に伝えるために重要です。様々なテクニックを駆使して、被写体の魅力を最大限に引き出しましょう。</p>
-      <img src="https://res.cloudinary.com/dlyq6q8v0/image/upload/v1700000000/photogrow/subject_depth_of_field.jpg" alt="被写界深度">
-      <h3>被写界深度</h3>
-      <p>背景をぼかすことで（浅い被写界深度）、主要な被写体を際立たせることができます。ポートレートやマクロ撮影でよく用いられる手法です。絞りを開放する（F値を小さくする）ことで、被写界深度を浅くできます。</p>
-      <h3>リード線</h3>
-      <p>道、フェンス、川などの線状の要素を利用して、見る人の視線を被写体へと誘導する構図です。写真に奥行きと動きを与えます。</p>
-      <h3>反復とパターン</h3>
-      <p>同じような形や色が繰り返されるパターンを見つけ、それを構図に取り入れることで、視覚的に面白く、リズム感のある写真になります。パターンの中に一つだけ異なる要素を入れると、それが被写体として際立ちます。</p>
-      <h3>ネガティブスペース</h3>
-      <p>被写体以外の余白（ネガティブスペース）を意図的に広く取ることで、被写体をより強調し、ミニマルで洗練された印象を与えることができます。被写体に「呼吸する空間」を与えるイメージです。</p>
-      <h3>視線の誘導</h3>
-      <p>被写体の視線や、写真内の他の要素（例えば、人物が指差す方向）を利用して、見る人の視線を写真の特定のポイントへと誘導します。これにより、写真のストーリーテリングが強化されます。</p>
-    `
-  }
-};
-
-function showAcademyModal(type) {
-  const content = academyContent[type];
-  if (content) {
-    modalTitle.textContent = content.title;
-    modalBody.innerHTML = content.body;
-    academyModal.classList.add('active');
-  }
+function resetUpload() {
+  gPendingImg=null; gPendingScore=null; gPendingLoc=null; window._aiAdvice=null; var aiS=document.getElementById('ai-advice-section'); if(aiS)aiS.style.display='none';
+  document.getElementById('preview-container').style.display='none';
+  document.getElementById('upload-area').style.display='block';
+  document.getElementById('score-result').style.display='none';
+  var el=document.getElementById('location-display');
+  if(el){el.style.display='none';el.textContent='';}
+  document.getElementById('file-lib').value='';
+  document.getElementById('file-cam').value='';
 }
 
-      console.log("--- Before window.onload script block ---");
-// 初期化
-window.onload = function() {
-  console.log("window.onload started");
-  // Supabaseクライアントの初期化
+function doSave() {
+  if(!gPendingImg||!gPendingScore)return;
+  var btn=document.getElementById('btn-save');
+  btn.textContent='保存中...'; btn.disabled=true;
+  function save(url){
+    sbPost('photos',{
+      user_id:gUser.id,image_url:url,
+      score:gPendingScore.total,brightness:gPendingScore.brightness,
+      saturation:gPendingScore.saturation,contrast:gPendingScore.contrast,
+      composition:gPendingScore.composition,sharpness:gPendingScore.sharpness,
+      advice:gPendingScore.advice,location_name:gPendingLoc||null,
+      created_at:new Date().toISOString()
+    }).then(function(){
+      toast('✅ 保存しました！');
+      gPendingImg=null; gPendingScore=null; gPendingLoc=null; window._aiAdvice=null; var aiS=document.getElementById('ai-advice-section'); if(aiS)aiS.style.display='none';
+      resetUpload(); loadStats(); goPage('gallery');
+    }).catch(function(e){toast('保存失敗: '+e.message);})
+    .finally(function(){btn.textContent='💾 成長記録に保存する';btn.disabled=false;});
+  }
+  var arr=gPendingImg.split(','),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]),n=bstr.length,u8=new Uint8Array(n);
+  while(n--)u8[n]=bstr.charCodeAt(n);
+  var fd=new FormData(); fd.append('file',new Blob([u8],{type:mime})); fd.append('upload_preset',CP);
+  fetch('https://api.cloudinary.com/v1_1/'+CC+'/image/upload',{method:'POST',body:fd})
+    .then(function(r){return r.json();}).then(function(d){save(d.secure_url||'');}).catch(function(){save('');});
+}
 
-  console.log("Supabase URL (SB):", SB);
-  console.log("Supabase Anon Key (SK):", SK);
-  console.log("Attempting to initialize Supabase client.");
+function makeAdvice(b,s,c,comp,sh,total) {
+  var a=[];
+  if(b<35)a.push('【明るさ：深刻】写真全体が暗すぎます。マジックアワー（日の出・日没直後）を狙うか、露出補正を+1〜2段上げてください。');
+  else if(b<50)a.push('【明るさ：不足】露出が足りていません。ISOを上げるか、シャッタースピードを遅くして光を多く取り込みましょう。');
+  else if(b>88)a.push('【明るさ：飛びすぎ】白飛びしている可能性が高いです。露出補正を-1段下げ、ハイライトを守ってください。');
+  else if(b>75)a.push('【明るさ：やや明るい】少し露出オーバーです。-0.3〜-0.7段絞ることで空や雲のディテールを保持できます。');
+  else a.push('【明るさ：良好】露出は適切です。光の方向性（順光・逆光・サイド光）を意識すると立体感が増します。');
+  if(s<25)a.push('【彩度：非常に低い】色味がほぼない状態です。晴天の青空や夕焼けを背景に撮影しましょう。');
+  else if(s<45)a.push('【彩度：不足】色の鮮やかさが足りません。被写体の色が映える時間帯（午前・夕方）を選びましょう。');
+  else if(s>80)a.push('【彩度：鮮やか】色彩が豊かで視線を引きます。不自然な過彩度にならないよう注意を。');
+  else a.push('【彩度：良好】色のバランスが取れています。ホワイトバランスを合わせるとさらに自然な発色になります。');
+  if(c<30)a.push('【コントラスト：非常に低い】全体的にのっぺりした印象です。トーンカーブでS字カーブをかけましょう。');
+  else if(c<50)a.push('【コントラスト：不足】明暗差が少なく立体感に欠けます。サイド光を意識した構図にしましょう。');
+  else if(c>80)a.push('【コントラスト：強い】ダイナミックな仕上がりです。暗部が潰れていないか確認してください。');
+  else a.push('【コントラスト：良好】明暗のバランスが取れています。光の角度を変えて質感を出してみましょう。');
+  if(sh<30)a.push('【シャープネス：深刻】明らかにブレています。三脚必須です。セルフタイマーでシャッターを切りましょう。');
+  else if(sh<50)a.push('【シャープネス：不足】ピントが甘いか手ブレがあります。iPhoneでは画面タップでピント合わせを確認してください。');
+  else if(sh>75)a.push('【シャープネス：優秀】くっきりと解像しています。前景と背景のボケも意識してみましょう。');
+  else a.push('【シャープネス：良好】ピントは合っています。被写界深度のコントロールを意識しましょう。');
+  if(total>=85)a.push('【総合】プロレベルに近い仕上がりです。SNSや作品展示にも十分通用します。');
+  else if(total>=70)a.push('【総合】上級アマチュアレベルです。弱点の項目を集中して改善すると大きくスコアが上がります。');
+  else if(total>=55)a.push('【総合】中級者レベルです。撮影前に「何を伝えたいか」を決めてからシャッターを切る習慣をつけましょう。');
+  else if(total>=40)a.push('【総合】初級者レベルです。三分割法を意識した構図から始めましょう。');
+  else a.push('【総合】基礎から見直しが必要です。まずは明るく・ブレない写真を撮ることを目標にしてください。');
+  return a.join('\n\n');
+}
+
+function updateOldAdvice() {
+  if(!gUser) return;
+  sbGet('photos?select=id,brightness,saturation,contrast,composition,sharpness,score,advice&user_id=eq.'+gUser.id)
+    .then(function(data){
+      if(!Array.isArray(data))return;
+      data.forEach(function(p){
+        if(p.brightness&&(!p.advice||p.advice.indexOf('【')===-1)){
+          sbPatch('photos?id=eq.'+p.id,{advice:makeAdvice(p.brightness,p.saturation,p.contrast,p.composition,p.sharpness,p.score)}).catch(function(){});
+        }
+      });
+    }).catch(function(){});
+}
+
+// ===== チャレンジデータ =====
+var CHALLENGES = [
+  {icon:'🌅',title:'黄金の時間を捉えろ',desc:'日の出か日没の30分以内に撮影しよう。空が橙色に染まる瞬間が狙い目。',condition:'明るさスコア60点以上で達成',check:function(s){return s.brightness>=60;}},
+  {icon:'🏔️',title:'地平線を支配せよ',desc:'地平線や水平線を画面の三分の一に配置した構図で撮影しよう。',condition:'構図スコア70点以上で達成',check:function(s){return s.composition>=70;}},
+  {icon:'💧',title:'シャープな水を捉えろ',desc:'川・滝・海など水の動きをくっきりと写そう。',condition:'シャープネス70点以上で達成',check:function(s){return s.sharpness>=70;}},
+  {icon:'🌈',title:'色彩の魔法使い',desc:'豊かな色彩の風景を撮影しよう。花畑・紅葉・夕焼けなどが狙い目。',condition:'彩度スコア65点以上で達成',check:function(s){return s.saturation>=65;}},
+  {icon:'⛅',title:'ドラマチックな空',desc:'雲のある空を主役にした写真を撮ろう。明暗差のある雲が理想的。',condition:'コントラスト65点以上で達成',check:function(s){return s.contrast>=65;}},
+  {icon:'🌿',title:'自然の細部を見つけろ',desc:'葉・花・石など自然の小さなディテールに近づいて撮影しよう。',condition:'シャープネス75点以上で達成',check:function(s){return s.sharpness>=75;}},
+  {icon:'🌃',title:'光と影のコントラスト',desc:'強い光源と深い影が共存する場所を探して撮影しよう。',condition:'コントラスト70点以上で達成',check:function(s){return s.contrast>=70;}},
+  {icon:'🏞️',title:'完璧な露出を目指せ',desc:'明るすぎず暗すぎない、バランスのとれた露出で撮影しよう。',condition:'明るさ55〜75点で達成',check:function(s){return s.brightness>=55&&s.brightness<=75;}},
+  {icon:'🎨',title:'総合マスター',desc:'すべての要素が高水準な一枚を撮影しよう。光・色・構図・シャープネスすべてが揃った傑作を目指せ。',condition:'総合スコア75点以上で達成',check:function(s){return s.total>=75;}},
+  {icon:'🌙',title:'静寂の風景',desc:'人工物のない純粋な自然の風景を撮影しよう。',condition:'彩度50点以上 & 構図60点以上で達成',check:function(s){return s.saturation>=50&&s.composition>=60;}},
+];
+
+var gCurrentChallenge = null;
+var gChallengeHistory = [];
+
+function loadChallenge() {
   try {
-      const supabase = window.supabase.createClient(SB, SK);    console.log("Supabase client initialized.", supabase);
-  } catch (e) {
-    console.error("Error initializing Supabase client:", e);
-  }
+    var saved = localStorage.getItem('pg_challenge');
+    if (saved) {
+      var d = JSON.parse(saved);
+      // 今日のチャレンジを復元
+      if (d.date === todayStr()) {
+        gCurrentChallenge = d.idx;
+      }
+    }
+    var hist = localStorage.getItem('pg_challenge_hist');
+    if (hist) gChallengeHistory = JSON.parse(hist);
+  } catch(e) {}
+  if (gCurrentChallenge === null) pickNewChallenge();
+  renderChallenge();
+  renderChallengeHistory();
+}
 
-  const authBtnElement = document.getElementById('auth-btn');
-  if (authBtnElement) {
-    authBtnElement.onclick = doLogin;
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function pickNewChallenge() {
+  gCurrentChallenge = Math.floor(Math.random() * CHALLENGES.length);
+  try { localStorage.setItem('pg_challenge', JSON.stringify({date:todayStr(),idx:gCurrentChallenge})); } catch(e) {}
+}
+
+function renderChallenge() {
+  var c = CHALLENGES[gCurrentChallenge];
+  if (!c) return;
+  document.getElementById('challenge-icon').textContent = c.icon;
+  document.getElementById('challenge-title').textContent = c.title;
+  document.getElementById('challenge-desc').textContent = c.desc;
+  document.getElementById('challenge-condition').textContent = c.condition;
+}
+
+function renderChallengeHistory() {
+  var el = document.getElementById('challenge-history');
+  var emptyEl = document.getElementById('challenge-history-empty');
+  if (!gChallengeHistory.length) {
+    el.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
   }
+  emptyEl.style.display = 'none';
+  el.innerHTML = gChallengeHistory.slice().reverse().map(function(h) {
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px">'+
+      '<div style="font-size:2rem">'+h.icon+'</div>'+
+      '<div><div style="font-weight:600;font-size:0.9rem;color:var(--gold)">'+h.title+'</div>'+
+      '<div style="font-size:0.75rem;color:var(--text2);margin-top:2px">'+h.date+' ・ '+h.score+'点でクリア</div></div>'+
+      '<div style="margin-left:auto;font-size:1.5rem">✅</div>'+
+      '</div>';
+  }).join('');
+}
+
+function checkChallengeCompletion(scores) {
+  if (gCurrentChallenge === null) return;
+  var c = CHALLENGES[gCurrentChallenge];
+  if (!c) return;
+  if (c.check(scores)) {
+    // クリア！
+    var hist = {icon:c.icon, title:c.title, date:todayStr(), score:scores.total};
+    gChallengeHistory.push(hist);
+    try { localStorage.setItem('pg_challenge_hist', JSON.stringify(gChallengeHistory)); } catch(e) {}
+    // 次のチャレンジを用意
+    pickNewChallenge();
+    // 通知
+    setTimeout(function() {
+      toast('🎉 チャレンジクリア！「'+c.title+'」');
+    }, 500);
+  }
+}
+
+// ===== お気に入り機能 =====
+function toggleFavorite(id) {
+  var p = gGallery[id];
+  if (!p) return;
+  var newVal = !p.is_favorite;
+  sbPatch('photos?id=eq.'+id+'&user_id=eq.'+gUser.id, {is_favorite: newVal})
+    .then(function() {
+      p.is_favorite = newVal;
+      // ボタンのUIを即座に更新
+      var btn = document.querySelector('.fav-btn[data-id="'+id+'"]');
+      if (btn) {
+        btn.textContent = newVal ? '❤️' : '🤍';
+        btn.style.opacity = newVal ? 1 : 0.3;
+      }
+      toast(newVal ? '❤️ お気に入りに追加' : '🤍 お気に入りを解除');
+    }).catch(function() { toast('更新に失敗しました'); });
+}
+
+// ===== セッション復元 & イベント設定 =====
+window.onload = function() {
+  // ボタンイベント
+  document.getElementById('auth-btn').onclick = doLogin;
   document.getElementById('toggle-link').onclick = toggleMode;
   document.getElementById('user-avatar').onclick = doLogout;
   document.getElementById('nav-home').onclick = function(){goPage('home');};
   document.getElementById('nav-upload').onclick = function(){goPage('upload');};
   document.getElementById('nav-gallery').onclick = function(){goPage('gallery');};
-  document.getElementById('nav-academy').onclick = function(){goPage('academy');};
+  document.getElementById('nav-challenge').onclick = function(){goPage('challenge');};
+  document.getElementById('tab-latest').onclick = function(){setSort('latest');};
+  document.getElementById('tab-score').onclick = function(){setSort('score');};
+  document.getElementById('tab-fav').onclick = function(){setSort('fav');};
+  document.getElementById('btn-new-challenge').onclick = function(){
+    pickNewChallenge();
+    renderChallenge();
+    toast('🔀 新しいチャレンジを引きました！');
+  };
+  document.getElementById('btn-library').onclick = function(){document.getElementById('file-lib').click();};
+  document.getElementById('btn-camera').onclick = function(){document.getElementById('file-cam').click();};
+  document.getElementById('file-lib').onchange = function(e){if(e.target.files[0])processFile(e.target.files[0]);};
+  document.getElementById('file-cam').onchange = function(e){if(e.target.files[0])processFile(e.target.files[0]);};
+  document.getElementById('btn-remove').onclick = resetUpload;
+  document.getElementById('btn-save').onclick = doSave;
+  document.getElementById('btn-modal-close').onclick = function(){document.getElementById('detail-modal').classList.remove('open');};
+  document.getElementById('detail-modal').onclick = function(e){if(e.target===this)this.classList.remove('open');};
+  document.getElementById('gallery-grid').onclick = function(e){
+    var d=e.target.closest('.delete-btn');
+    if(d){doDelete(d.dataset.id);return;}
+    var f=e.target.closest('.fav-btn');
+    if(f){toggleFavorite(f.dataset.id);return;}
+    var g=e.target.closest('.gallery-item');
+    if(g)openDetail(g.dataset.id);
+  };
 
-  checkLoginStatus();
+  // セッション復元
+  try {
+    var t=localStorage.getItem('sb_t');
+    if(t) {
+      gToken=t; gRefresh=localStorage.getItem('sb_r')||'';
+      document.getElementById('auth-screen').style.display='none';
+      var ls=document.createElement('div');
+      ls.id='loading-screen';
+      ls.style.cssText='position:fixed;inset:0;background:#0a0a0f;display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:0';
+      ls.innerHTML='<div style="position:relative;width:90px;height:90px;margin-bottom:28px">'+
+        '<svg viewBox="0 0 90 90" style="width:90px;height:90px;animation:pgRotate 3s ease-in-out infinite">'+
+        '<circle cx="45" cy="45" r="40" fill="none" stroke="#1a1a24" stroke-width="3"/>'+
+        '<circle cx="45" cy="45" r="40" fill="none" stroke="#c8a96e" stroke-width="3" stroke-dasharray="62 188" stroke-linecap="round" style="animation:pgDash 1.5s ease-in-out infinite"/>'+
+        '</svg>'+
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'+
+        '<svg viewBox="0 0 40 40" style="width:40px;height:40px"><rect x="4" y="12" width="32" height="22" rx="4" fill="#c8a96e" opacity="0.15" stroke="#c8a96e" stroke-width="1.5"/><circle cx="20" cy="23" r="6" fill="none" stroke="#c8a96e" stroke-width="1.5"/><path d="M14 12 L16 8 H24 L26 12" fill="#c8a96e" opacity="0.8"/><circle cx="30" cy="16" r="2" fill="#c8a96e"/></svg>'+
+        '</div></div>'+
+        '<div style="font-family:\'Playfair Display\',serif;font-size:1.6rem;color:#c8a96e;letter-spacing:2px;margin-bottom:6px">PhotoGrow</div>'+
+        '<div style="font-size:0.75rem;color:#5a5060;letter-spacing:3px;text-transform:uppercase">Loading...</div>';
+      document.body.appendChild(ls);
+      fetch(SB+'/auth/v1/user',{headers:{apikey:SK,'Authorization':'Bearer '+t}})
+        .then(function(r){return r.json();})
+        .then(function(u){
+          ls.remove();
+          if(u&&u.id){gUser=u;showApp();}
+          else{gToken='';document.getElementById('auth-screen').style.display='flex';}
+        }).catch(function(){
+          ls.remove(); gToken='';
+          document.getElementById('auth-screen').style.display='flex';
+        });
+    }
+  } catch(e) {}
 };
-
-// Cloudinary署名生成 (サーバーサイドで実装されるべきですが、デモ用にクライアントサイドでモックアップ)
-// async function getCloudinarySignature() {
-//   // 実際には、バックエンドAPIを呼び出して署名を取得します
-//   // 例: const response = await fetch('/api/cloudinary-signature');
-//   //     const data = await response.json();
-//   //     return data.signature;
-//   return 'mock_signature'; 
-// }
-
-// AI分析 (サーバーサイドで実装されるべきですが、デモ用にクライアントサイドでモックアップ)
-// async function getAIAnalysis(imageUrl) {
-//   // 実際には、バックエンドAPIを呼び出してAI分析結果を取得します
-//   // 例: const response = await fetch('/api/analyze-image', { method: 'POST', body: JSON.stringify({ imageUrl }) });
-//   //     const data = await response.json();
-//   //     return data;
-//   return {
-//     overallScore: Math.floor(Math.random() * 100),
-//     composition: Math.floor(Math.random() * 100),
-//     lighting: Math.floor(Math.random() * 100),
-//     color: Math.floor(Math.random() * 100),
-//     subject: Math.floor(Math.random() * 100),
-//     advice: "素晴らしい写真です！"
-//   };
-// }
-
-function save(url) {
-  var fd = new FormData();
-  fd.append('url', url);
-  fetch('/save', {method:'POST',body:fd})
-    .then(function(r){return r.json();}).then(function(d){save(d.secure_url||'');}).catch(function(){save('');});
-}
 </script>
 </body>
 </html>
