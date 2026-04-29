@@ -795,6 +795,7 @@
     <div class="nav-item" id="nav-upload"><span class="nav-icon">📷</span>採点</div>
     <div class="nav-item" id="nav-gallery"><span class="nav-icon">🖼️</span>ギャラリー</div>
     <div class="nav-item" id="nav-challenge"><span class="nav-icon">🎯</span>チャレンジ</div>
+    <div class="nav-item" id="nav-tips"><span class="nav-icon">📚</span>コツ</div>
   </nav>
 </div>
 
@@ -820,6 +821,23 @@
     <div>まだチャレンジをクリアしていません</div>
     <div style="font-size:0.85rem;margin-top:8px">写真を撮って挑戦してみよう！</div>
   </div>
+</div>
+
+
+<!-- TIPS PAGE -->
+<div class="page" id="page-tips">
+  <div class="page-header">📚 撮影テクニック</div>
+
+  <!-- カテゴリタブ -->
+  <div class="sort-tabs" style="margin-bottom:20px;overflow-x:auto;flex-wrap:nowrap">
+    <div class="sort-tab active" id="tips-tab-basic" style="white-space:nowrap">📐 基本</div>
+    <div class="sort-tab" id="tips-tab-light" style="white-space:nowrap">☀️ 光</div>
+    <div class="sort-tab" id="tips-tab-landscape" style="white-space:nowrap">🏞️ 風景</div>
+    <div class="sort-tab" id="tips-tab-iphone" style="white-space:nowrap">📱 iPhone</div>
+    <div class="sort-tab" id="tips-tab-practice" style="white-space:nowrap">💪 練習</div>
+  </div>
+
+  <div id="tips-content"></div>
 </div>
 
 <!-- MODAL -->
@@ -949,6 +967,240 @@ function showApp() {
   loadStats(); loadGallery(); updateOldAdvice(); loadChallenge();
 }
 
+
+// ===== 撮影テクニック =====
+var TIPS = {
+  basic: [
+    {
+      icon: '📐',
+      title: '三分割法（さんぶんかつほう）',
+      summary: '構図の基本中の基本。プロが必ず使うテクニック。',
+      detail: '画面を縦横それぞれ3等分する線を引いた時、その交点（4つの点）に主役を配置します。iPhoneではカメラの「グリッド」設定をオンにすると線が表示されます。\n\n【使い方】\n・夕焼けの空を強調したい→地平線を下1/3の線に合わせる\n・花や被写体を際立たせたい→右か左の縦線に配置\n・人物を撮る→目の位置を上1/3の線に合わせる',
+      tip: '💡 iPhoneの設定→カメラ→グリッドをオンにしよう'
+    },
+    {
+      icon: '🎯',
+      title: 'ピントの合わせ方',
+      summary: 'ピンボケ写真をなくす最重要テクニック。',
+      detail: 'iPhoneでは画面をタップした場所にピントが合います。主役にしっかりタップしてからシャッターを切りましょう。\n\n【AEロック機能】\n画面を長押しすると「AE/AFロック」が表示されます。これでピントと露出が固定され、構図を動かしてもピントがずれません。\n\n【注意点】\n・近すぎると接写モードが必要\n・動く被写体は連写がおすすめ\n・暗い場所はピントが合いにくい',
+      tip: '💡 長押しでAE/AFロックを使いこなそう'
+    },
+    {
+      icon: '⚖️',
+      title: '水平・垂直を意識する',
+      summary: '傾いた写真は素人っぽく見える。水平線・建物は真っ直ぐに。',
+      detail: '風景写真で地平線や水平線が傾いていると、見る人に違和感を与えます。特に海・湖・広い空の写真では必ず確認しましょう。\n\n【確認方法】\n・iPhoneのグリッドを参考にする\n・撮影後に編集で回転補正する\n\n【あえて傾ける場合】\nダイナミックな印象を与えたい時は、意図的に斜めに構えることも。ただし15度以上傾けるなど意図が伝わる角度にすること。',
+      tip: '💡 水平線は必ずグリッド線に合わせよう'
+    },
+    {
+      icon: '🔍',
+      title: '前景・中景・遠景を使う',
+      summary: '奥行き感を出して立体的な写真に仕上げる技術。',
+      detail: '写真に奥行きを出すには、手前（前景）・中間（中景）・奥（遠景）の3層を意識して構図を作ります。\n\n【例】\n・前景：手前の花や岩\n・中景：主役の木や建物\n・遠景：山や空\n\n前景があると写真に引き込まれる感覚が生まれ、見る人を写真の世界に誘います。特に広角で撮影する時に効果的。',
+      tip: '💡 手前に何か置くだけで写真が激変する'
+    },
+    {
+      icon: '📏',
+      title: '余白（ネガティブスペース）',
+      summary: '何も写っていないスペースが写真を引き立てる。',
+      detail: '主役以外の何も写っていない空間（余白）は、見る人の視線を主役に集中させる効果があります。\n\n【使い方】\n・空をたっぷり入れて主役を下に配置\n・シンプルな背景（空・海・壁）を選ぶ\n・主役の進行方向に余白を作る\n\n特にミニマルな写真は、余白が多いほどインパクトが増します。引き算の美学です。',
+      tip: '💡 思い切って余白を大きく取ってみよう'
+    },
+  ],
+  light: [
+    {
+      icon: '🌅',
+      title: 'ゴールデンアワーを狙え',
+      summary: '日の出・日没後30分。世界が黄金色に輝く魔法の時間。',
+      detail: '日の出直後と日没直前の約30分間を「ゴールデンアワー」と呼びます。太陽が低い位置にあるため、光が柔らかくオレンジ・ゴールドに染まり、被写体に美しい影を作ります。\n\n【特徴】\n・影が長く伸びて立体感が増す\n・暖色系の光で雰囲気が出る\n・空のグラデーションが美しい\n\nプロカメラマンがこの時間帯に集中して撮影するのはこのためです。',
+      tip: '💡 天気アプリで日の入り時間を確認しよう'
+    },
+    {
+      icon: '🌆',
+      title: 'マジックアワーを逃すな',
+      summary: '日没後〜暗くなるまでの15分。幻想的なブルーの時間。',
+      detail: '日没後、空が完全に暗くなる前の約15〜20分間を「マジックアワー（ブルーアワー）」と呼びます。空が美しい青に染まり、街明かりとのバランスが絶妙です。\n\n【撮影のコツ】\n・三脚があれば理想的（手ブレしやすい）\n・建物・橋・街並みとの組み合わせが◎\n・この時間は非常に短いので準備して臨む\n\nゴールデンアワーの後すぐに始まるので、連続して撮影するのがおすすめです。',
+      tip: '💡 ゴールデンアワーの後すぐ始まるから待機して'
+    },
+    {
+      icon: '☁️',
+      title: '曇りの日も宝物',
+      summary: '曇り空は最高の自然光ディフューザー。色が鮮やかに出る。',
+      detail: '「曇りの日は撮影に向かない」は大間違いです。曇り空は太陽の直射光を和らげる天然の拡散板として機能し、影ができにくく被写体全体が均一に照らされます。\n\n【曇りの日に向く被写体】\n・花・植物（色が鮮やかに出る）\n・ポートレート（影がなく肌がきれいに）\n・滝・川（白飛びしにくい）\n\n晴れの日の強い光では難しい、繊細で均一な描写が可能です。',
+      tip: '💡 花の撮影は曇りの日が実は最高！'
+    },
+    {
+      icon: '💡',
+      title: '逆光を味方にする',
+      summary: '逆光は失敗写真の元凶？いや、使いこなせば最強の武器。',
+      detail: '被写体の後ろから光が来る「逆光」。通常はシルエットになったり白飛びしたりしますが、うまく使えば幻想的な写真が撮れます。\n\n【逆光の使い方】\n① シルエット：露出を空に合わせ、被写体を黒くする\n② レンズフレア：太陽を画面端に入れて光の筋を演出\n③ 透過光：葉や花に光を透過させてキラキラを表現\n\n【ポイント】\niPhoneでは露出を下げる（画面をタップして上下スライド）ことで白飛びを防げます。',
+      tip: '💡 太陽を少し外れた位置に入れると綺麗なフレアが出る'
+    },
+    {
+      icon: '🌤️',
+      title: '光の方向を読む',
+      summary: '順光・サイド光・逆光。光の方向で写真の印象が激変。',
+      detail: '【順光（じゅんこう）】\n被写体の正面から光が当たる状態。色が鮮やかで見やすいが、影がなく平面的に見えることも。\n\n【サイド光】\n横から光が当たる状態。影が生まれ立体感・質感が際立つ。風景撮影で最もドラマチックな光。\n\n【逆光】\n後ろから光が当たる状態。シルエットや幻想的な表現に。\n\n朝夕のサイド光の時間帯が最も立体感のある写真が撮れます。',
+      tip: '💡 朝夕のサイド光で木の幹のテクスチャを撮ってみよう'
+    },
+  ],
+  landscape: [
+    {
+      icon: '🏔️',
+      title: '空と地面の黄金比',
+      summary: '空と地面をどの割合で写すかで写真の印象が決まる。',
+      detail: '風景写真で最も重要な判断の一つが「空と地面の割合」です。\n\n【空2：地面1】\nドラマチックな雲・夕焼けがある時。空を主役にしたい時。\n\n【空1：地面2】\n地面（前景）に見せたいものがある時。花畑・紅葉など。\n\n【空1：地面1（1:1）】\n水面に映る逆さ富士など、対称性を強調したい時。\n\n迷ったら三分割法の地平線位置（上1/3か下1/3）を試してみてください。',
+      tip: '💡 地平線を画面の真ん中に置かないのが鉄則'
+    },
+    {
+      icon: '🌊',
+      title: '水の撮り方',
+      summary: '川・海・滝を美しく撮るテクニック。',
+      detail: '【流れる水をシルキーに表現】\nシャッタースピードを遅くする（1秒以上）と水が絹のように滑らかに写ります。三脚が必須。iPhoneでは「スローモード」の逆・長時間露光アプリを使う方法があります。\n\n【瞬間を切り取る】\n波が砕ける瞬間・飛沫などは連写で複数枚撮り、ベストを選ぶ。\n\n【リフレクション（水面の映り込み）】\n風のない朝方が最も水面が穏やか。山や建物が逆さに映る写真は非常に人気。',
+      tip: '💡 朝早く行くと風がなく水面がミラーになる'
+    },
+    {
+      icon: '🌲',
+      title: '引き込み線を使う',
+      summary: '道・川・フェンスを使って視線を奥へ誘導する。',
+      detail: '一本道・川・フェンス・線路などの線を使い、見る人の視線を画面奥へと誘導するテクニックを「リーディングライン（引き込み線）」と呼びます。\n\n【使い方】\n・道の手前から撮影し、道が画面奥に消えるような構図\n・左右の対称にしてより強調\n・消失点（奥の一点）に主役を置く\n\nこのテクニックを使うだけで、写真に強い奥行き感と物語性が生まれます。',
+      tip: '💡 一本道を見つけたら必ずこの構図を試して'
+    },
+    {
+      icon: '🪟',
+      title: 'フレーミングを使う',
+      summary: '木の隙間・アーチ・窓枠で主役を囲む上級テクニック。',
+      detail: '木々の枝・アーチ・洞窟の入口・窓枠などで主役をフレームのように囲む構図を「フレーミング」と呼びます。\n\n【効果】\n・見る人の視線が自然に主役へ向かう\n・奥行き感が増す\n・写真に物語性が生まれる\n\n【探し方】\n・木々の間から山・空を見上げる\n・橋やトンネルから奥を撮る\n・建物の窓越しに外を撮る\n\n日常のあらゆる場所にフレームは存在します。',
+      tip: '💡 木々の隙間から覗くように撮ると簡単にできる'
+    },
+    {
+      icon: '🌈',
+      title: '色を意識した構図',
+      summary: '補色・類似色・モノトーンを意識して色の世界観を作る。',
+      detail: '【補色（ほしょく）の組み合わせ】\n青と橙・赤と緑など正反対の色の組み合わせは、鮮やかでドラマチックな印象。夕焼けの空（橙）と手前の影（青）などが代表例。\n\n【類似色の統一感】\n緑と黄緑・青と水色など近い色でまとめた写真は落ち着いたハーモニーを演出。\n\n【モノトーン（色を排除）】\nあえて色の少ない曇りの日や霧の日を選び、形と質感だけで見せる。',
+      tip: '💡 夕焼けの橙と空の青の補色関係を意識してみよう'
+    },
+  ],
+  iphone: [
+    {
+      icon: '⚙️',
+      title: 'iPhoneカメラの基本設定',
+      summary: '知っておくべき設定3つ。まずここから始めよう。',
+      detail: '【グリッド線をオン】\n設定→カメラ→グリッド\n三分割法の線が表示され、水平確認もできる。\n\n【HDRをオン】\n設定→カメラ→スマートHDR\n明るい部分と暗い部分を自動的にバランス良く処理。風景撮影に必須。\n\n【Live Photoをオフ】\n動く写真はファイルサイズが大きい。静止画を撮りたい時はオフに。\n\n【フォーマットをHEIFに】\n設定→カメラ→フォーマット→高効率\nファイルサイズを抑えて多く保存できる。',
+      tip: '💡 まずグリッドとHDRをオンにしよう'
+    },
+    {
+      icon: '☀️',
+      title: '露出の手動調整',
+      summary: '画面タップ後に指を上下にスライドするだけ。明るさを自在に操る。',
+      detail: 'iPhoneカメラで画面をタップすると、黄色い枠と太陽マークが表示されます。この太陽マークを上下にスライドすることで明るさ（露出）を手動で調整できます。\n\n【暗くする場合（下にスライド）】\n・白飛びを防ぎたい時\n・夕焼けを深く赤く写したい時\n・シルエット写真を撮りたい時\n\n【明るくする場合（上にスライド）】\n・逆光で被写体が暗すぎる時\n・夜景や暗い場所で',
+      tip: '💡 夕焼けは少し暗めにするとドラマチックになる'
+    },
+    {
+      icon: '📱',
+      title: 'ポートレートモードを風景に使う',
+      summary: '人物専用と思っていない？風景にも使える隠れた使い方。',
+      detail: 'ポートレートモードはiPhone 7 Plus以降で使えるボケ機能ですが、実は近距離の風景にも使えます。\n\n【風景での使い方】\n・花・葉・岩などの近景を主役にして背景をボカす\n・コントラストが強い場面で自然なボケを作る\n\n【注意点】\n・遠景（山・空）にはボケが適用されない\n・近すぎると認識されない（30〜150cm程度が最適）\n\nまた、撮影後に「編集」からボケの強さを調整できます。',
+      tip: '💡 花の撮影でポートレートモードを試してみよう'
+    },
+    {
+      icon: '🌙',
+      title: 'ナイトモードを活用する',
+      summary: 'iPhone 11以降に搭載。夜景撮影が激変する神機能。',
+      detail: 'ナイトモードは暗い場所で自動的にオンになり、複数枚の写真を合成して明るく鮮明な写真を生成します。\n\n【使いこなしポイント】\n・シャッタータイムが長いほど明るくなる（最大30秒）\n・撮影中はiPhoneを固定する（三脚推奨）\n・月明かりや街灯を活用する\n\n【ナイトモードに向く被写体】\n・星空・天の川\n・夜の街並み・橋\n・キャンドルや照明の光\n\n手持ちでも驚くほど明るく撮れます。',
+      tip: '💡 三脚を使えばナイトモードが最大30秒で撮れる'
+    },
+    {
+      icon: '🔭',
+      title: '望遠・超広角レンズの使い分け',
+      summary: '複数のレンズを状況によって使い分けるのがiPhoneカメラの真骨頂。',
+      detail: '【超広角レンズ（0.5x）】\n広い景色を一枚に収めたい時。建物・滝・広大な自然に。ただし歪みが出やすいので水平に注意。\n\n【標準レンズ（1x）】\n最もバランスが良く、人間の目に近い画角。迷ったらこれ。\n\n【望遠レンズ（2x/3x/5x）】\n遠くの山・野鳥・月などを大きく撮りたい時。\n\n【ポイント】\n望遠は遠近感が圧縮されて奥のものが大きく見える「圧縮効果」が使えます。重なった山々を大きく表現したい時に◎',
+      tip: '💡 望遠レンズで山の重なりを圧縮効果で撮ってみよう'
+    },
+  ],
+  practice: [
+    {
+      icon: '📅',
+      title: '毎日1枚チャレンジ',
+      summary: '量をこなすことで確実に上達する。毎日1枚撮り続けよう。',
+      detail: '写真の上達に必要なのは「量」です。毎日たった1枚でも、意識して撮り続けることで確実にレベルアップできます。\n\n【毎日1枚チャレンジのルール】\n・テーマを決める（例：今週は「光」を意識する）\n・同じ場所を時間を変えて撮り比べる\n・昨日より一つだけ意識することを増やす\n\n【記録の重要性】\n1ヶ月前の写真と今日の写真を見比べると、必ず成長を実感できます。PhotoGrowのグラフで確認しましょう。',
+      tip: '💡 1ヶ月続けるだけで劇的に変わる'
+    },
+    {
+      icon: '🎓',
+      title: '同じ場所を100回撮る',
+      summary: '名カメラマンが実践する、場所への深い理解を得る練習法。',
+      detail: '同じ場所を天気・時間・季節を変えて繰り返し撮影することで、光の変化・構図の可能性・被写体の表情の違いを深く理解できます。\n\n【やり方】\n1. お気に入りの場所を1つ決める\n2. 晴れ・曇り・雨・朝・昼・夕方・夜と条件を変えて撮る\n3. 春夏秋冬すべてで撮影する\n\nプロカメラマンの多くが「一つの場所を知り尽くす」ことが写真上達の近道だと言います。',
+      tip: '💡 近所の公園でもいい。徹底的に撮り尽くそう'
+    },
+    {
+      icon: '👁️',
+      title: '撮る前に5秒考える',
+      summary: 'シャッターを押す前に5秒だけ考える習慣で写真が変わる。',
+      detail: '多くの初心者は見た瞬間にシャッターを押します。しかしプロは「どう撮るか」を考えてからシャッターを押します。\n\n【5秒チェックリスト】\n① 主役は何か（何を見せたいか）\n② 主役はどこに配置するか（三分割法）\n③ 邪魔なものが写っていないか\n④ 光の方向は正しいか\n⑤ 水平・垂直は正しいか\n\nこの5秒の習慣を続けるだけで、失敗写真が劇的に減ります。',
+      tip: '💡 撮る前に「なぜこれを撮るのか」を言語化しよう'
+    },
+    {
+      icon: '🔄',
+      title: '撮ったらすぐ確認・改善',
+      summary: '撮影と確認のサイクルを高速で回すことが上達の鍵。',
+      detail: '撮影後すぐに写真を確認し、「もっとこうすれば良かった」と気づいたらすぐに撮り直す。このサイクルを繰り返すことが上達への最短ルートです。\n\n【確認のポイント】\n・ピントは合っているか（拡大して確認）\n・構図は意図通りか\n・明るすぎ・暗すぎていないか\n・不要なものが写り込んでいないか\n\n【PhotoGrowの活用】\n採点とアドバイスを読んで、次の撮影に活かしましょう。スコアの変化がモチベーションになります。',
+      tip: '💡 失敗写真は宝。なぜ失敗したか分析しよう'
+    },
+    {
+      icon: '🏆',
+      title: 'お手本写真を真似る',
+      summary: '好きな写真を完コピする練習が爆速で上達させる。',
+      detail: '音楽でも絵でも、上達の基本は「真似」から始まります。写真も同様に、好きな写真を完全に再現しようとすることで技術が身につきます。\n\n【やり方】\n1. 好きな風景写真を1枚選ぶ\n2. 同じ場所・同じ時間・同じ構図で撮影する\n3. 見比べてどこが違うか分析する\n\n【参考にするもの】\n・Instagram・500px・写真共有サイト\n・写真集・カレンダーの風景写真\n\n真似ることで「なぜプロの写真は違うのか」が具体的に分かります。',
+      tip: '💡 完コピしようとするだけで上達が加速する'
+    },
+  ]
+};
+
+var gCurrentTipsCategory = 'basic';
+
+function loadTips() {
+  renderTipsCategory('basic');
+}
+
+function renderTipsCategory(cat) {
+  gCurrentTipsCategory = cat;
+  // タブの切り替え
+  ['basic','light','landscape','iphone','practice'].forEach(function(c) {
+    var el = document.getElementById('tips-tab-' + c);
+    if (el) el.classList.toggle('active', c === cat);
+  });
+
+  var data = TIPS[cat] || [];
+  var html = data.map(function(tip, idx) {
+    return '<div class="tip-card" id="tip-card-' + cat + '-' + idx + '" onclick="toggleTip('' + cat + '',' + idx + ')">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+      '<div style="font-size:2rem;flex-shrink:0">' + tip.icon + '</div>' +
+      '<div style="flex:1">' +
+      '<div style="font-weight:600;font-size:0.95rem;color:var(--text)">' + tip.title + '</div>' +
+      '<div style="font-size:0.8rem;color:var(--text2);margin-top:3px">' + tip.summary + '</div>' +
+      '</div>' +
+      '<div class="tip-arrow" id="tip-arrow-' + cat + '-' + idx + '" style="color:var(--text2);font-size:1rem;transition:transform 0.3s">▼</div>' +
+      '</div>' +
+      '<div class="tip-detail" id="tip-detail-' + cat + '-' + idx + '" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">' +
+      '<div style="font-size:0.88rem;line-height:1.8;color:var(--text);white-space:pre-line">' + tip.detail + '</div>' +
+      '<div style="margin-top:12px;padding:10px 14px;background:rgba(200,169,110,0.1);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-size:0.82rem;color:var(--accent)">' + tip.tip + '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('tips-content').innerHTML = html;
+}
+
+function toggleTip(cat, idx) {
+  var detail = document.getElementById('tip-detail-' + cat + '-' + idx);
+  var arrow = document.getElementById('tip-arrow-' + cat + '-' + idx);
+  if (!detail) return;
+  var isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
 // ===== ナビ =====
 function goPage(name) {
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
@@ -959,6 +1211,7 @@ function goPage(name) {
   if(name==='home') loadStats();
   if(name==='upload'&&!gPendingImg) resetUpload();
   if(name==='challenge') loadChallenge();
+  if(name==='tips') loadTips();
 }
 
 // ===== ホーム =====
@@ -1535,6 +1788,12 @@ window.onload = function() {
   document.getElementById('nav-upload').onclick = function(){goPage('upload');};
   document.getElementById('nav-gallery').onclick = function(){goPage('gallery');};
   document.getElementById('nav-challenge').onclick = function(){goPage('challenge');};
+  document.getElementById('nav-tips').onclick = function(){goPage('tips');};
+  document.getElementById('tips-tab-basic').onclick = function(){renderTipsCategory('basic');};
+  document.getElementById('tips-tab-light').onclick = function(){renderTipsCategory('light');};
+  document.getElementById('tips-tab-landscape').onclick = function(){renderTipsCategory('landscape');};
+  document.getElementById('tips-tab-iphone').onclick = function(){renderTipsCategory('iphone');};
+  document.getElementById('tips-tab-practice').onclick = function(){renderTipsCategory('practice');};
   document.getElementById('tab-latest').onclick = function(){setSort('latest');};
   document.getElementById('tab-score').onclick = function(){setSort('score');};
   document.getElementById('tab-fav').onclick = function(){setSort('fav');};
